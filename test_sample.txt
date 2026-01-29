@@ -1,0 +1,63 @@
+This is a test document for HPES extraction system.
+
+Here is some Python code:
+
+```python
+def hello_world():
+    print("Hello from HPES!")
+    return True
+
+class DataProcessor:
+    def __init__(self, data):
+        self.data = data
+    
+    def process(self):
+        return [x * 2 for x in self.data]
+```
+
+Here is some configuration:
+
+```json
+{
+  "server": {
+    "host": "localhost",
+    "port": 8000,
+    "ssl": true
+  },
+  "database": {
+    "type": "postgresql",
+    "host": "db.example.com",
+    "port": 5432
+  }
+}
+```
+
+Some JavaScript code:
+
+```javascript
+function processData(items) {
+    return items.map(item => {
+        return {
+            id: item.id,
+            name: item.name,
+            processed: true
+        };
+    });
+}
+
+const config = {
+    apiUrl: 'https://api.example.com',
+    timeout: 5000
+};
+```
+
+And some plain text explanation about the system.
+This should not be detected as code.
+
+More Python:
+
+    def another_function(x, y):
+        result = x + y
+        return result * 2
+
+End of test file.
