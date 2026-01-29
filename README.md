@@ -17,6 +17,53 @@ SENTINEL (Syntax and Entity Net for Extraction Logic) is an advanced system desi
 *   **Customizable Rules:** Allows users to define and adapt extraction rules to specific domain requirements and data types.
 *   **Data Integrity:** Acts as a "guardian" by ensuring the consistency and accuracy of extracted information, crucial for downstream applications.
 
+## Quick Start
+
+### Using Docker (Recommended)
+
+```bash
+docker-compose up --build
+```
+
+### Local Development
+
+```bash
+# Start both backend and frontend
+./start_local.sh
+
+# Or manually:
+# Terminal 1 - Backend
+cd backend
+source venv/bin/activate
+uvicorn app.main:app --reload --port 8000
+
+# Terminal 2 - Frontend
+cd frontend
+npm run dev
+```
+
+**Access:**
+- Frontend: http://localhost:5173 (or 3000 with Docker)
+- Backend API: http://localhost:8000/docs
+
+---
+
+## 📚 API Documentation
+
+**Comprehensive API Guide** (English & Turkish):  
+👉 **[`backend/API_GUIDE.md`](backend/API_GUIDE.md)**
+
+Learn how to:
+- Create and manage sessions
+- Upload files for extraction
+- Process text/markdown directly
+- Provide feedback to improve accuracy
+- Export extracted blocks
+
+Interactive Swagger UI: http://localhost:8000/docs
+
+---
+
 ## Architecture (High-Level)
 SENTINEL's architecture typically includes:
 1.  **Text Preprocessing Module:** Handles tokenization, stemming, lemmatization, and part-of-speech tagging.
