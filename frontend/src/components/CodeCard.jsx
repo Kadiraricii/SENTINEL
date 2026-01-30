@@ -115,7 +115,7 @@ function CodeCard({ block, onUpdate }) {
                     <button
                         onClick={() => handleFeedback('accept')}
                         disabled={feedbackSent}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded-lg transition-all disabled:opacity-50"
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all disabled:opacity-50 font-medium shadow-lg shadow-green-900/20"
                     >
                         <Check className="w-4 h-4" />
                         Accept
@@ -123,7 +123,7 @@ function CodeCard({ block, onUpdate }) {
 
                     <button
                         onClick={() => setIsEditing(true)}
-                        className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-lg transition-all"
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-all"
                     >
                         <Edit3 className="w-4 h-4" />
                     </button>
@@ -131,7 +131,7 @@ function CodeCard({ block, onUpdate }) {
                     <button
                         onClick={() => handleFeedback('reject')}
                         disabled={feedbackSent}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition-all disabled:opacity-50"
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all disabled:opacity-50 font-medium shadow-lg shadow-red-900/20"
                     >
                         <X className="w-4 h-4" />
                         Reject

@@ -14,7 +14,14 @@ function FileUpload({ onUpload, loading }) {
         accept: {
             'application/pdf': ['.pdf'],
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-            'text/plain': ['.txt', '.md', '.log', '.sh', '.bat', '.config', '.ini', '.env'],
+            'text/plain': ['.txt', '.log', '.sh', '.bat', '.config', '.ini', '.env'],
+            'text/markdown': ['.md'],
+            'application/x-python': ['.py'],
+            'text/javascript': ['.js', '.jsx', '.ts', '.tsx'],
+            'application/x-ruby': ['.rb'],
+            'application/x-php': ['.php'],
+            'text/x-csharp': ['.cs'],
+            'text/x-kotlin': ['.kt'],
             'application/json': ['.json'],
             'application/x-yaml': ['.yaml', '.yml'],
             'application/xml': ['.xml'],
@@ -49,16 +56,21 @@ function FileUpload({ onUpload, loading }) {
                 </h3>
 
                 <p className="text-gray-300 mb-2">
-                    Drag & drop or click to select
+                    Drag & drop PDF, Markdown, or Code files
                 </p>
 
-                <div className="mt-4 flex flex-wrap gap-2 justify-center text-sm text-gray-400">
+                <div className="mt-4 flex flex-wrap gap-2 justify-center text-sm text-gray-400 max-w-lg mx-auto">
                     <span className="px-3 py-1 bg-purple-500/20 rounded-full">PDF</span>
                     <span className="px-3 py-1 bg-purple-500/20 rounded-full">DOCX</span>
-                    <span className="px-3 py-1 bg-purple-500/20 rounded-full">TXT</span>
-                    <span className="px-3 py-1 bg-purple-500/20 rounded-full">JSON</span>
-                    <span className="px-3 py-1 bg-purple-500/20 rounded-full">YAML</span>
-                    <span className="px-3 py-1 bg-purple-500/20 rounded-full">Configs</span>
+                    <span className="px-3 py-1 bg-pink-500/20 rounded-full">Markdown</span>
+                    <span className="px-3 py-1 bg-blue-500/20 rounded-full">Python</span>
+                    <span className="px-3 py-1 bg-yellow-500/20 rounded-full">JS/TS</span>
+                    <span className="px-3 py-1 bg-red-500/20 rounded-full">Ruby</span>
+                    <span className="px-3 py-1 bg-indigo-500/20 rounded-full">PHP</span>
+                    <span className="px-3 py-1 bg-green-500/20 rounded-full">C#</span>
+                    <span className="px-3 py-1 bg-orange-500/20 rounded-full">Kotlin</span>
+                    <span className="px-3 py-1 bg-gray-500/20 rounded-full">Bash</span>
+                    <span className="px-3 py-1 bg-gray-500/20 rounded-full">Configs</span>
                 </div>
 
                 <p className="mt-4 text-xs text-gray-500">
