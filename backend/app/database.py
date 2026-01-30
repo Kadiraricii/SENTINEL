@@ -7,7 +7,8 @@ from sqlalchemy.orm import sessionmaker
 from pathlib import Path
 
 # Database file location
-DATABASE_DIR = Path(__file__).parent.parent.parent / "data"
+# Resolve to absolute path to avoid issues with relative imports
+DATABASE_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 DATABASE_DIR.mkdir(exist_ok=True)
 DATABASE_URL = f"sqlite:///{DATABASE_DIR}/hpes.db"
 
