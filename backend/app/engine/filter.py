@@ -106,6 +106,15 @@ class PrecisionFilter:
                     'filtered_by': 'context_density'
                 }
         
+        # Rule 7: Python Indentation Check
+        if language == 'python' or self._looks_like_python(content):
+            if not self._check_indentation(content):
+                return {
+                    'accept': False,
+                    'reason': 'Invalid or mixed indentation',
+                    'filtered_by': 'indentation_check'
+                }
+
         # All checks passed
         return {
             'accept': True,
@@ -176,6 +185,24 @@ class PrecisionFilter:
             }
         
         return {'valid': True}
+    
+    def _check_indentation(self, content: str) -> bool:
+        """Check for consistent indentation (no mixed tabs/spaces)."""
+        lines = content.split('\n')
+        # Check for mixed tabs/spaces
+        has_tabs = any('\t' in line for line in lines)
+        has_spaces = any(line.startswith(' ') for line in lines)
+        
+        if has_tabs and has_spaces:
+            return False  # Mixed indentation
+        
+        return True
+
+    def _looks_like_python(self, content: str) -> bool:
+        """Heuristic to check if content looks like Python."""
+        keywords = {'def', 'class', 'import', 'from', 'if', 'elif', 'else', 'try', 'except'}
+        words = set(re.findall(r'\b\w+\b', content))
+        return bool(words.intersection(keywords)) and ':' in content
     
     def _looks_like_prose(self, content: str) -> bool:
         """
