@@ -46,12 +46,13 @@ class Validator:
         # This would be populated from database in production
         self.scoring_adjustments = {}
     
-    def validate_block(self, block: CandidateBlock) -> Dict:
+    def validate_block(self, block: CandidateBlock, filename: str = None) -> Dict:
         """
         Validate and classify a candidate block.
         
         Args:
             block: CandidateBlock to validate
+            filename: Optional filename to provide context (e.g., extension hints)
             
         Returns:
             Validation result dict
@@ -68,7 +69,23 @@ class Validator:
             'valid': False
         }
         
-        # Try programming language validation first (highest confidence)
+        # Determine language hint from extension
+        extension_hint = None
+        if filename:
+            ext = filename.split('.')[-1].lower() if '.' in filename else ''
+            # Map extensions to languages
+            ext_map = {
+                'py': 'python', 'js': 'javascript', 'jsx': 'javascript', 
+                'ts': 'typescript', 'tsx': 'typescript',
+                'java': 'java', 'c': 'c', 'cpp': 'cpp', 'cc': 'cpp',
+                'go': 'go', 'rs': 'rust', 'php': 'php', 'rb': 'ruby',
+                'cs': 'c_sharp', 'sh': 'bash', 'bash': 'bash', 'zsh': 'bash',
+                'kt': 'kotlin', 'json': 'json', 'xml': 'xml', 'yaml': 'yaml', 'yml': 'yaml',
+                'md': 'markdown'
+            }
+            extension_hint = ext_map.get(ext)
+
+        # 1. Try explicit language hint from block (Markdown fence) - Highest Priority
         if block.language_hint:
             # Markdown specified a language
             lang_result = self._validate_programming_language(
@@ -78,32 +95,54 @@ class Validator:
             if lang_result['valid']:
                 result.update(lang_result)
                 result['block_type'] = 'code'
-                result['validation_method'] = 'tree-sitter'
+                result['validation_method'] = 'tree-sitter-hint'
                 return result
         
-        # Try all supported programming languages
+        # 2. Try file extension hint - High Priority
+        if extension_hint:
+            # Try to validate using the file's native language first
+            if extension_hint in ['json', 'xml', 'yaml']:
+                 structured_result = self._validate_structured_data(block.content)
+                 if structured_result['valid'] and structured_result['language'] == extension_hint:
+                     result.update(structured_result)
+                     result['block_type'] = 'structured'
+                     # Boost confidence
+                     result['confidence_score'] = min(0.99, result['confidence_score'] + 0.1)
+                     return result
+            else:
+                # It's a code language
+                lang_result = self._validate_programming_language(block.content, extension_hint)
+                if lang_result['valid']:
+                    result.update(lang_result)
+                    result['block_type'] = 'code'
+                    result['validation_method'] = 'tree-sitter-context'
+                    # Boost confidence significantly
+                    result['confidence_score'] = min(0.99, result['confidence_score'] + 0.15)
+                    return result
+
+        # 3. Fallback: Try all supported programming languages (Automatic Detection)
         lang_result = self._detect_programming_language(block.content)
         if lang_result['valid']:
             result.update(lang_result)
             result['block_type'] = 'code'
-            result['validation_method'] = 'tree-sitter'
+            result['validation_method'] = 'tree-sitter-auto'
             return result
         
-        # Try structured data validation
+        # 4. Try structured data validation (Generic)
         structured_result = self._validate_structured_data(block.content)
         if structured_result['valid']:
             result.update(structured_result)
             result['block_type'] = 'structured'
             return result
         
-        # Try config pattern matching
+        # 5. Try config patterns
         config_result = self._validate_config(block.content)
         if config_result['valid']:
             result.update(config_result)
             result['block_type'] = 'config'
             return result
         
-        # Try log pattern matching
+        # 6. Try log patterns
         log_result = self._validate_log(block.content)
         if log_result['valid']:
             result.update(log_result)
@@ -122,6 +161,11 @@ class Validator:
             'js': 'javascript',
             'ts': 'typescript',
             'c++': 'cpp',
+            'cs': 'c_sharp',
+            'rb': 'ruby',
+            'sh': 'bash',
+            'zsh': 'bash',
+            'kt': 'kotlin',
         }
         language = lang_map.get(language.lower(), language.lower())
         
@@ -153,12 +197,19 @@ class Validator:
     def _detect_programming_language(self, code: str) -> Dict:
         """Try to detect programming language automatically."""
         # Try common languages in order of likelihood
-        candidate_langs = ['python', 'javascript', 'java', 'c', 'cpp', 'go', 'rust']
+        candidate_langs = ['python', 'javascript', 'java', 'c', 'cpp', 'go', 'rust', 'c_sharp', 'php', 'kotlin', 'bash', 'ruby']
         
         best_result = {'valid': False, 'confidence_score': 0.0}
         
         for lang in candidate_langs:
             result = self._validate_programming_language(code, lang)
+            
+            # Special handling for SHEBANG
+            if lang == 'bash' and code.startswith('#!'):
+                 result['valid'] = True
+                 result['language'] = 'bash'
+                 result['confidence_score'] = 1.0
+
             if result['valid'] and result.get('confidence_score', 0) > best_result.get('confidence_score', 0):
                 best_result = result
         
