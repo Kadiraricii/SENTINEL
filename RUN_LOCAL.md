@@ -11,7 +11,7 @@ Virtual environment oluşturuldu ve tüm bağımlılıklar kuruldu.
 ### Seçenek 1: Otomatik Başlatma (Önerilen)
 
 ```bash
-cd /Users/kadirarici/Desktop/SENTINEL-1
+cd /Users/kadirarici/Desktop/SENTINEL
 ./start_local.sh
 ```
 
@@ -26,14 +26,14 @@ Bu script otomatik olarak:
 
 **Terminal 1 - Backend:**
 ```bash
-cd /Users/kadirarici/Desktop/SENTINEL-1/backend
+cd /Users/kadirarici/Desktop/SENTINEL/backend
 source venv/bin/activate
 uvicorn app.main:app --reload --port 8000
 ```
 
 **Terminal 2 - Frontend:**
 ```bash
-cd /Users/kadirarici/Desktop/SENTINEL-1/frontend
+cd /Users/kadirarici/Desktop/SENTINEL/frontend
 npm run dev
 ```
 
@@ -50,7 +50,7 @@ npm run dev
 ## 📁 Proje Yapısı
 
 ```
-SENTINEL-1/
+SENTINEL/
 ├── backend/
 │   ├── venv/           # ✅ Python virtual environment
 │   ├── grammars/       # ✅ Tree-sitter grammarları (7/8 built)
