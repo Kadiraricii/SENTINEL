@@ -164,13 +164,13 @@ class Segmenter:
                 if current_block and len(current_block) >= self.min_block_lines:
                     # Verify this looks like code
                     block_text = '\n'.join(current_block)
-                    if self._calculate_technical_density(block_text) > 0.15:
+                    if self._calculate_technical_density(block_text) > 0.15 or self._calculate_block_complexity(block_text) >= 2:
                         blocks.append(CandidateBlock(
                             content=block_text,
                             start_line=block_start,
                             end_line=i - 1,
                             detection_method='indentation',
-                            confidence=0.75
+                            confidence=0.85  # Higher confidence due to indentation + structure
                         ))
                 
                 current_block = []
@@ -187,7 +187,7 @@ class Segmenter:
         lines = text.split('\n')
         
         window_size = 5
-        threshold = 0.20  # 20% technical characters
+        threshold = 0.15  # 15% technical characters (Lowered from 0.20)
         
         i = 0
         while i < len(lines) - window_size:
@@ -213,8 +213,13 @@ class Segmenter:
                 
                 if end - start >= self.min_block_lines:
                     block_content = '\n'.join(lines[start:end])
-                    blocks.append(CandidateBlock(
-                        content=block_content,
+                    
+                    # Complexity Check: Require score >= 3 for density-based blocks (reduce false positives)
+                    complexity = self._calculate_block_complexity(block_content)
+                    
+                    if complexity >= 3 or density > 0.30:  # Allow simple high-density blocks
+                        blocks.append(CandidateBlock(
+                            content=block_content,
                         start_line=start,
                         end_line=end - 1,
                         detection_method='density',
@@ -254,6 +259,20 @@ class Segmenter:
         # Combined score
         return (char_density * 0.7) + (keyword_density * 0.3)
     
+    def _calculate_block_complexity(self, block: str) -> int:
+        """Calculate structural complexity score."""
+        score = 0
+        # Functions/methods
+        score += len(re.findall(r'\bdef\b|\bfunction\b|\bpublic\b|\bprivate\b', block))
+        # Control flow
+        score += len(re.findall(r'\bif\b|\bfor\b|\bwhile\b|\bswitch\b', block))
+        # Classes
+        score += len(re.findall(r'\bclass\b|\binterface\b|\bstruct\b', block))
+        # Nested brackets (heuristic)
+        if '{' in block and '}' in block: score += 1
+        if '(' in block and ')' in block: score += 1
+        return score
+
     def _deduplicate_blocks(self, blocks: List[CandidateBlock]) -> List[CandidateBlock]:
         """Remove overlapping blocks, keeping higher confidence."""
         if not blocks:
