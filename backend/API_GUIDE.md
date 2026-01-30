@@ -23,6 +23,9 @@
    - [Extraction](#extraction)
    - [Feedback](#feedback)
    - [Export](#export)
+   - [Batch Processing](#batch-processing)
+   - [Analytics](#analytics)
+   - [Search](#search)
 4. [Examples](#examples)
 5. [Error Handling](#error-handling)
 
@@ -522,6 +525,89 @@ with open("extracted_blocks.zip", "wb") as f:
     f.write(response.content)
 
 print("Downloaded extracted_blocks.zip")
+```
+
+---
+
+### Batch Processing
+
+Upload multiple files at once.
+
+**Endpoint**: `POST /api/batch/upload`
+
+**Request**: Multipart form data with multiple files.
+
+**cURL Example**:
+```bash
+curl -X POST "http://localhost:8000/api/batch/upload" \
+  -F "files=@file1.py" \
+  -F "files=@file2.js"
+```
+
+**Response** (202 Accepted):
+```json
+{
+  "batch_id": "550e8400-e29b...",
+  "file_count": 2,
+  "status_url": "/api/batch/550e8400.../status"
+}
+```
+
+---
+
+### Analytics
+
+Get system insights.
+
+**Endpoint**: `GET /api/analytics/overview`
+
+**Response** (200 OK):
+```json
+{
+  "total_files": 120,
+  "total_blocks": 450,
+  "avg_confidence": 0.95,
+  "language_distribution": [
+    {"language": "python", "count": 300},
+    {"language": "javascript", "count": 150}
+  ]
+}
+```
+
+**Other Endpoints**:
+- `GET /api/analytics/trends?days=7`
+- `GET /api/analytics/top-files`
+
+---
+
+### Search
+
+Search extracted blocks.
+
+**Endpoint**: `GET /api/search`
+
+**Query Parameters**:
+- `q`: Search query
+- `languages`: Filter by language (e.g. `python`)
+- `min_confidence`: Minimum confidence score (0.0 - 1.0)
+
+**Example**:
+`GET /api/search?q=database&languages=python&min_confidence=0.9`
+
+**Response** (200 OK):
+```json
+{
+  "total_results": 5,
+  "results": [
+    {
+      "block_id": 1,
+      "content": "class Database: ...",
+      "language": "python",
+      "confidence_score": 0.98,
+      "match_score": 0.95
+    }
+  ]
+}
 ```
 
 ---
