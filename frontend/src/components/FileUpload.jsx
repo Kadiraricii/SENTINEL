@@ -38,8 +38,8 @@ function FileUpload({ onUpload, loading }) {
             {...getRootProps()}
             className={`
                 relative overflow-hidden
-                backdrop-blur-xl bg-gradient-to-br from-purple-500/10 via-pink-500/5 to-cyan-500/10
-                p-16 rounded-3xl border-2 border-dashed cursor-pointer
+                backdrop-blur-xl bg-black/20
+                p-10 rounded-3xl border-2 border-dashed cursor-pointer
                 transition-all duration-500 ease-out
                 ${isDragActive
                     ? 'border-pink-400 bg-purple-500/20 scale-[1.02] shadow-[0_0_60px_rgba(236,72,153,0.4)]'
@@ -68,7 +68,7 @@ function FileUpload({ onUpload, loading }) {
                 {/* Icon Container with Neon Glow */}
                 <div className={`
                     inline-flex items-center justify-center
-                    w-32 h-32 mb-8 rounded-full
+                    w-24 h-24 mb-6 rounded-full
                     bg-gradient-to-br from-purple-600/20 to-pink-600/20
                     backdrop-blur-md border border-white/10
                     transition-all duration-500

@@ -233,80 +233,82 @@ const UploadPage = () => {
 
     // 2. Default Upload View
     return (
-        <TubesBackground>
-            <div className="space-y-6 max-w-[1920px] mx-auto px-8 py-8 w-full pointer-events-auto">
-                {/* Header */}
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-white mb-2">Upload & Analyze</h2>
-                    <p className="text-gray-400">Upload files or import repositories for analysis.</p>
-                </div>
-
-                {/* If a file is uploaded, show it (similar to previous view) */}
-                {uploadFileId ? (
-                    <div className="animate-fade-in">
-                        <div className="flex justify-between items-center mb-6 bg-[#1a1b26] p-4 rounded-xl border border-white/5">
-                            <div>
-                                <h3 className="text-white font-medium">Active File: <span className="text-purple-400">{uploadFileName}</span></h3>
-                                <p className="text-xs text-gray-500">ID: {uploadFileId}</p>
-                            </div>
-                            <button
-                                onClick={() => {
-                                    setUploadFileId(null);
-                                    setUploadContent('');
-                                    setUploadBlocks([]);
-                                }}
-                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors flex items-center space-x-2"
-                            >
-                                <ArrowLeft size={16} />
-                                <span>Back to Upload</span>
-                            </button>
-                        </div>
-
-                        <SplitView
-                            originalContent={uploadContent}
-                            extractedBlocks={uploadBlocks}
-                            onBlockUpdate={setUploadBlocks}
-                        />
-
-                        {uploadBlocks.length > 0 && (
-                            <div className="mt-6">
-                                <ExportPanel fileId={uploadFileId} totalBlocks={uploadBlocks.length} />
-                            </div>
-                        )}
+        <TubesBackground sidebarOffset={80}>
+            <div className="flex items-center justify-center min-h-screen w-full pointer-events-auto" style={{ marginLeft: '-40px' }}>
+                <div className="space-y-4 max-w-[1200px] w-full px-6 py-6">
+                    {/* Header */}
+                    <div className="text-center mb-6">
+                        <h2 className="text-2xl font-bold text-white mb-1">Upload & Analyze</h2>
+                        <p className="text-sm text-gray-400">Upload files or import repositories for analysis.</p>
                     </div>
-                ) : (
-                    /* Tab Selection for NEW Upload/Import */
-                    <div className="w-full">
-                        <div className="flex justify-center space-x-4 mb-8">
-                            <button
-                                onClick={() => setActiveTab('upload')}
-                                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all ${!gitResult && activeTab !== 'git-form'
-                                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20'
-                                    : 'bg-gray-800/50 text-gray-400 hover:bg-gray-800'
-                                    }`}
-                            >
-                                <UploadIcon size={18} />
-                                <span>File Upload</span>
-                            </button>
-                            <GitHubButton onClick={() => setActiveTab('git-form')} />
-                        </div>
 
-                        <div className="w-full">
-                            {activeTab === 'git-form' ? (
-                                <GitImport onImportSuccess={handleGitSuccess} />
-                            ) : (
-                                <div className="w-full max-w-lg mx-auto">
-                                    <FileUpload onUpload={handleFileUpload} loading={loading} />
-                                    {error && (
-                                        <div className="mt-4 p-4 bg-red-500/20 rounded-lg border border-red-500/50">
-                                            <p className="text-red-200">{error}</p>
-                                        </div>
-                                    )}
+                    {/* If a file is uploaded, show it (similar to previous view) */}
+                    {uploadFileId ? (
+                        <div className="animate-fade-in">
+                            <div className="flex justify-between items-center mb-6 bg-[#1a1b26] p-4 rounded-xl border border-white/5">
+                                <div>
+                                    <h3 className="text-white font-medium">Active File: <span className="text-purple-400">{uploadFileName}</span></h3>
+                                    <p className="text-xs text-gray-500">ID: {uploadFileId}</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setUploadFileId(null);
+                                        setUploadContent('');
+                                        setUploadBlocks([]);
+                                    }}
+                                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors flex items-center space-x-2"
+                                >
+                                    <ArrowLeft size={16} />
+                                    <span>Back to Upload</span>
+                                </button>
+                            </div>
+
+                            <SplitView
+                                originalContent={uploadContent}
+                                extractedBlocks={uploadBlocks}
+                                onBlockUpdate={setUploadBlocks}
+                            />
+
+                            {uploadBlocks.length > 0 && (
+                                <div className="mt-6">
+                                    <ExportPanel fileId={uploadFileId} totalBlocks={uploadBlocks.length} />
                                 </div>
                             )}
                         </div>
-                    </div>
-                )}
+                    ) : (
+                        /* Tab Selection for NEW Upload/Import */
+                        <div className="w-full">
+                            <div className="flex justify-center space-x-3 mb-6">
+                                <button
+                                    onClick={() => setActiveTab('upload')}
+                                    className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl font-medium text-sm transition-all ${!gitResult && activeTab !== 'git-form'
+                                        ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20'
+                                        : 'bg-gray-800/50 text-gray-400 hover:bg-gray-800'
+                                        }`}
+                                >
+                                    <UploadIcon size={16} />
+                                    <span>File Upload</span>
+                                </button>
+                                <GitHubButton onClick={() => setActiveTab('git-form')} />
+                            </div>
+
+                            <div className="w-full">
+                                {activeTab === 'git-form' ? (
+                                    <GitImport onImportSuccess={handleGitSuccess} />
+                                ) : (
+                                    <div className="w-full max-w-lg mx-auto">
+                                        <FileUpload onUpload={handleFileUpload} loading={loading} />
+                                        {error && (
+                                            <div className="mt-4 p-4 bg-red-500/20 rounded-lg border border-red-500/50">
+                                                <p className="text-red-200">{error}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </TubesBackground>
     );
