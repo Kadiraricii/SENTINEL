@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Page</title>
+</head>
+<body>
+    <h1>Hello World</h1>
+</body>
+</html>
+
+{
+    "key": "value",
+    "list": [1, 2, 3],
+    "nested": {
+        "x": 1
+    }
+}
+
+@media (max-width: 600px) {
+  .facet_sidebar {
+    display: none;
+  }
+}
+
+SELECT * FROM users WHERE id = 1;
