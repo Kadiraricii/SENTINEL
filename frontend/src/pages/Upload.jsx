@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import FileUpload from '../components/FileUpload';
 import GitImport from '../components/GitImport';
 import SplitView from '../components/SplitView';
@@ -87,6 +88,34 @@ const UploadPage = () => {
             // Extract
             const extractionResult = await extractBlocks(uploadResult.file_id);
             setUploadBlocks(extractionResult.blocks);
+
+            // Show Stats
+            if (extractionResult.stats) {
+                const { ast_parsed, fallback_extracted, total_extracted } = extractionResult.stats;
+
+                if (fallback_extracted > 0) {
+                    toast.warning(
+                        <div className="flex flex-col space-y-1">
+                            <span className="font-bold">Extraction Complete with Warnings</span>
+                            <span className="text-xs opacity-90">
+                                {ast_parsed} blocks parsed perfectly (AST).
+                                <br />
+                                {fallback_extracted} blocks used fallback text extraction (lower confidence).
+                            </span>
+                        </div>,
+                        { duration: 6000 }
+                    );
+                } else {
+                    toast.success(
+                        <div className="flex flex-col space-y-1">
+                            <span className="font-bold">Extraction Successful!</span>
+                            <span className="text-xs opacity-90">
+                                All {total_extracted} blocks parsed with full AST precision.
+                            </span>
+                        </div>
+                    );
+                }
+            }
 
             // Read Content
             const reader = new FileReader();

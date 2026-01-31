@@ -118,16 +118,24 @@ function FileUpload({ onUpload, loading }) {
                 {/* File Type Badges */}
                 <div className="flex flex-wrap gap-2 justify-center text-sm font-bold max-w-2xl mx-auto mb-6">
                     {[
+                        // Documents
                         { name: 'PDF', color: 'from-purple-500 to-purple-600', glow: 'purple' },
                         { name: 'DOCX', color: 'from-blue-500 to-blue-600', glow: 'blue' },
                         { name: 'Markdown', color: 'from-pink-500 to-pink-600', glow: 'pink' },
+
+                        // Languages
                         { name: 'Python', color: 'from-yellow-500 to-yellow-600', glow: 'yellow' },
-                        { name: 'JS/TS', color: 'from-cyan-500 to-cyan-600', glow: 'cyan' },
+                        { name: 'JS/TS/TSX', color: 'from-cyan-500 to-cyan-600', glow: 'cyan' },
+                        { name: 'Java', color: 'from-orange-500 to-orange-600', glow: 'orange' },
+                        { name: 'C/C++', color: 'from-blue-400 to-blue-500', glow: 'blue' },
+                        { name: 'C#', color: 'from-green-500 to-green-600', glow: 'green' },
+                        { name: 'Go', color: 'from-cyan-400 to-cyan-500', glow: 'cyan' },
+                        { name: 'Rust', color: 'from-orange-400 to-red-500', glow: 'orange' },
                         { name: 'Ruby', color: 'from-red-500 to-red-600', glow: 'red' },
                         { name: 'PHP', color: 'from-indigo-500 to-indigo-600', glow: 'indigo' },
-                        { name: 'C#', color: 'from-green-500 to-green-600', glow: 'green' },
-                        { name: 'Kotlin', color: 'from-orange-500 to-orange-600', glow: 'orange' },
-                        { name: 'Configs', color: 'from-gray-500 to-gray-600', glow: 'gray' },
+                        { name: 'Swift', color: 'from-orange-500 to-red-500', glow: 'orange' },
+                        { name: 'Kotlin', color: 'from-purple-400 to-purple-500', glow: 'purple' },
+                        { name: 'Bash', color: 'from-gray-600 to-gray-700', glow: 'gray' },
                     ].map((badge) => (
                         <span
                             key={badge.name}
