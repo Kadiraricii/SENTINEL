@@ -65,10 +65,10 @@
 ```yaml
 Programming Languages (Tree-sitter AST):
   - Python, JavaScript, TypeScript, Java, C, C++, Go, Rust
-  - Ruby, PHP, C#, Kotlin, Bash
+  - Ruby, PHP, C#, Kotlin, Bash, SQL, HTML, CSS
 
 Configuration & Structured Data:
-  - JSON, YAML, XML, TOML, Dockerfile
+  - JSON, YAML, XML, TOML, Dockerfile, CSV
   - Cisco IOS, Nginx configs
 
 Document Formats:
@@ -82,12 +82,12 @@ Document Formats:
 #### **1. File Upload**
 - Drag-and-drop interface with glassmorphic design
 - SHA-256 deduplication (prevents redundant processing)
-- Instant preview with file size/type validation
+- **New:** Support for `.html`, `.css`, `.json`, `.sql` files
 
 #### **2. Git Repository Analysis**
 - **One-Click Import:** Paste any GitHub URL (supports branches)
-- **Smart Estimation:** Real-time calculation of analysis time based on repo size
-- **File Explorer:** Interactive sidebar to navigate cloned repositories
+- **Smart Estimation:** Real-time calculation analysis time
+- **⏩ Fast Forward:** Intelligent polling system that detects early completion and lets you skip the countdown immediately.
 - **Cinematic Feedback:** Holographic terminal with cyber-security themed animations
 
 #### **3. Direct Text Input**
@@ -98,6 +98,11 @@ Document Formats:
 
 ### 🎨 **Premium User Experience**
 
+#### **⚡ Command+K Spotlight**
+- **Global Navigation:** Press `Cmd+K` (Mac) or `Ctrl+K` (Windows) anywhere to open the command palette.
+- **Instant Actions:** Jump to pages, toggle themes, or run quick extractions.
+- **Developer Friendly:** Keyboard-first design for power users.
+
 #### **Glassmorphic Dark Theme**
 - Semi-transparent cards with backdrop blur
 - Language-specific gradient accents (Python: Blue→Cyan, JavaScript: Yellow→Orange)
@@ -105,9 +110,9 @@ Document Formats:
 - Custom Inter font family for professional typography
 
 #### **Interactive Components**
-- **Monaco Editor:** Full-featured code editor (same as VS Code) for inline editing
+- **Monaco Editor:** Full-featured code editor (same as VS Code)
 - **Split View:** Resizable panels to compare original vs extracted content
-- **Confidence Visualization:** Circular progress indicators with color-coded scoring
+- **Regex Guide:** Built-in cheat sheet for advanced search queries (click `?` in search).
 
 ---
 
