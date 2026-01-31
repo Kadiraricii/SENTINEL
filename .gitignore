@@ -11,6 +11,7 @@ data/
 backend/scripts/data/
 backend/tests/data/
 frontend/public/
+frontend/node_modules/
 
 # macOS
 .DS_Store
