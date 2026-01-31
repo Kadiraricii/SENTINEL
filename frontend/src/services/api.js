@@ -86,7 +86,22 @@ export const getTopFiles = async () => {
 
 export const searchBlocks = async (params) => {
     // params: { q, languages, min_confidence, page, per_page }
-    const response = await api.get('/api/search', { params });
+    const response = await api.get('/api/search', {
+        params,
+        paramsSerializer: params => {
+            const searchParams = new URLSearchParams();
+            Object.entries(params).forEach(([key, value]) => {
+                if (value === undefined || value === null || value === '') return;
+
+                if (Array.isArray(value)) {
+                    value.forEach(v => searchParams.append(key, v));
+                } else {
+                    searchParams.append(key, value);
+                }
+            });
+            return searchParams.toString();
+        }
+    });
     return response.data;
 };
 
@@ -108,6 +123,16 @@ export const updateBlock = async (blockId, content, language) => {
 export const resetSystem = async () => {
     await api.delete('/api/system/reset');
     return { success: true };
+};
+
+export const fetchUserRepos = async (username) => {
+    const response = await api.get(`/api/git/users/${username}/repos`);
+    return response.data;
+};
+
+export const getBatchStatus = async (batchId) => {
+    const response = await api.get(`/api/batch/${batchId}/status`);
+    return response.data;
 };
 
 export default api;
