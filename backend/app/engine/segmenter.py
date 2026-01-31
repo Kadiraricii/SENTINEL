@@ -64,6 +64,25 @@ class Segmenter:
         density_blocks = self._extract_density_blocks(text, marked_lines)
         candidates.extend(density_blocks)
         
+        # 6. FALLBACK: If NO blocks detected, treat entire file as one block
+        # This ensures pure source code files (e.g., a single .py file) are not ignored
+        if len(candidates) == 0:
+            lines = text.split('\n')
+            if len(lines) >= self.min_block_lines:
+                # Check if file has ANY technical content (not just prose)
+                density = self._calculate_density(text)
+                if density > 0.05:  # At least 5% technical chars
+                    candidates.append(
+                        CandidateBlock(
+                            content=text,
+                            start_line=1,
+                            end_line=len(lines),
+                            detection_method='fallback_whole_file',
+                            confidence=0.70,  # Moderate confidence
+                            language_hint=None
+                        )
+                    )
+        
         return self._deduplicate_blocks(candidates)
 
     def _extract_toplevel_blocks(self, text: str, marked_lines: set) -> List[CandidateBlock]:

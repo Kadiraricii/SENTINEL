@@ -62,7 +62,7 @@ class Validator:
             ext = filename.split('.')[-1].lower() if '.' in filename else ''
             ext_map = {
                 'py': 'python', 'js': 'javascript', 'jsx': 'javascript', 
-                'ts': 'typescript', 'tsx': 'typescript',
+                'ts': 'typescript', 'tsx': 'tsx',
                 'java': 'java', 'c': 'c', 'cpp': 'cpp', 'cc': 'cpp',
                 'go': 'go', 'rs': 'rust', 'php': 'php', 'rb': 'ruby',
                 'cs': 'c_sharp', 'sh': 'bash', 'bash': 'bash', 'zsh': 'bash',
@@ -71,6 +71,7 @@ class Validator:
             }
             extension_hint = ext_map.get(ext)
 
+        
         # 1. Try explicit language hint from block (Markdown fence)
         if block.language_hint:
             lang_result = self._validate_programming_language(
@@ -83,7 +84,16 @@ class Validator:
                 result['validation_method'] = 'tree-sitter-hint'
                 return result
         
-        # 2. Try file extension hint
+        # 2. PRIORITY: Content-based automatic detection (overrides extension)
+        # This catches cases like HTML in a .txt file
+        lang_result = self._detect_programming_language(block.content)
+        if lang_result['valid'] and lang_result.get('confidence_score', 0) > 0.75:
+            result.update(lang_result)
+            result['block_type'] = 'code'
+            result['validation_method'] = 'tree-sitter-auto-priority'
+            return result
+        
+        # 3. Try file extension hint (only if auto-detection didn't find anything strong)
         if extension_hint:
             if extension_hint in ['json', 'xml', 'yaml']:
                  structured_result = self._validate_structured_data(block.content)
@@ -101,29 +111,30 @@ class Validator:
                     result['confidence_score'] = min(0.99, result['confidence_score'] + 0.15)
                     return result
 
-        # 3. Fallback: Automatic Detection
-        lang_result = self._detect_programming_language(block.content)
+        # 4. Fallback: Try auto-detection again with lower threshold
+        if not lang_result.get('valid'):
+            lang_result = self._detect_programming_language(block.content)
         if lang_result['valid']:
             result.update(lang_result)
             result['block_type'] = 'code'
             result['validation_method'] = 'tree-sitter-auto'
             return result
         
-        # 4. Try structured data
+        # 5. Try structured data
         structured_result = self._validate_structured_data(block.content)
         if structured_result['valid']:
             result.update(structured_result)
             result['block_type'] = 'structured'
             return result
         
-        # 5. Config patterns
+        # 6. Config patterns
         config_result = self._validate_config(block.content)
         if config_result['valid']:
             result.update(config_result)
             result['block_type'] = 'config'
             return result
         
-        # 6. Log patterns
+        # 7. Log patterns
         log_result = self._validate_log(block.content)
         if log_result['valid']:
             result.update(log_result)

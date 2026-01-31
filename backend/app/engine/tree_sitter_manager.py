@@ -16,7 +16,7 @@ class TreeSitterManager:
     SUPPORTED_LANGUAGES = {
         'python', 'javascript', 'typescript', 'java',
         'c', 'cpp', 'go', 'rust',
-        'ruby', 'php', 'c_sharp', 'swift', 'kotlin', 'bash'
+        'ruby', 'php', 'c_sharp', 'swift', 'kotlin', 'bash', 'tsx'
     }
     
     def __new__(cls):
@@ -71,6 +71,10 @@ class TreeSitterManager:
             # Special handling for C#
             if language == 'c_sharp':
                 func_name = "tree_sitter_c_sharp"
+            elif language == 'tsx':
+                 # TSX is compiled into typescript.so but has a different entry point
+                 grammar_path = self.grammar_dir / "typescript.so"
+                 func_name = "tree_sitter_tsx"
             
             try:
                 func = getattr(lib, func_name)
@@ -83,7 +87,12 @@ class TreeSitterManager:
             func.restype = ctypes.c_void_p
             ptr = func()
             
-            lang = Language(ptr)
+            try:
+                lang = Language(ptr, language)
+            except TypeError:
+                # Fallback for older tree-sitter versions
+                lang = Language(ptr)
+                
             self.languages[language] = lang
             
             return lang
