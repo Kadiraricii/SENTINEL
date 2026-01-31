@@ -49,6 +49,7 @@
 | **No-Exec** | 🟢 Complete | Automatic `chmod 644` on all uploaded/cloned files. |
 | **Secrets** | 🟢 Complete | Integrated scanning for API keys and credentials. |
 | **Data Types** | 🟢 Complete | Added support for JSON, HTML, CSS, SQL, XML parsing. |
+| **Fallback Logic** | 🟢 Complete | Regex-based extraction for unsupported languages (No file skipped). |
 
 ---
 

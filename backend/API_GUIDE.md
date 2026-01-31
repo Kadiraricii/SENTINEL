@@ -439,7 +439,12 @@ Extract code/config blocks from uploaded files.
       "status": "pending"
     }
   ],
-  "processing_time": 1.234
+  "processing_time": 1.234,
+  "stats": {
+    "ast_parsed": 14,
+    "fallback_extracted": 1,
+    "total_extracted": 15
+  }
 }
 ```
 
@@ -999,6 +1004,34 @@ for blok in sonuc['blocks']:
 Yüklenen dosyalardan kod/config blokları çıkarın.
 
 **Endpoint**: `POST /api/extract/{file_id}`
+
+**Yanıt** (200 OK):
+```json
+{
+  "file_id": 1,
+  "filename": "document.pdf",
+  "total_blocks": 15,
+  "blocks": [
+    {
+      "id": 1,
+      "content": "function veriGetir() { ... }",
+      "language": "javascript",
+      "block_type": "code",
+      "confidence_score": 92.3,
+      "validation_method": "tree-sitter",
+      "start_line": 10,
+      "end_line": 25,
+      "status": "pending"
+    }
+  ],
+  "processing_time": 1.234,
+  "stats": {
+    "ast_parsed": 14,
+    "fallback_extracted": 1,
+    "total_extracted": 15
+  }
+}
+```
 
 **cURL Örneği**:
 ```bash

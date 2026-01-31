@@ -43,7 +43,7 @@
 | Feature | SENTINEL | Traditional Tools |
 |---------|-----------|-------------------|
 | **Multi-Source Input** | ✅ Files, URLs, Git Repos, Text | ❌ Limited to files |
-| **AST Validation** | ✅ Tree-sitter for 15+ languages | ❌ Regex-only |
+| **AST Validation** | ✅ Tree-sitter + Regex Fallback | ❌ Regex-only |
 | **Security Hardening** | ✅ SSRF, Injection, No-Exec | ❌ Basic validation |
 | **Real-time Analytics** | ✅ Dashboard with trends | ❌ No analytics |
 | **Interactive Editing** | ✅ Monaco Editor integration | ❌ View-only |
@@ -58,7 +58,7 @@
 #### **Hybrid Intelligence**
 - **Three-Stage Pipeline:**
   1. **Segmentation:** Markdown fence detection → Indentation analysis → Density scoring
-  2. **Validation:** Tree-sitter AST (15 languages) → Pattern matching (configs) → Schema validation (JSON/YAML)
+  2. **Validation:** Tree-sitter AST (15 languages) → Pattern matching (configs) → **Fallback Regex** (unsupported languages)
   3. **Filtering:** Size thresholds → Inline detection → Syntax integrity checks
 
 #### **Supported Languages & Formats**
@@ -93,6 +93,10 @@ Document Formats:
 #### **3. Direct Text Input**
 - Paste code/markdown directly into the system
 - Instant extraction without file creation
+
+#### **4. Smart Notifications & Stats**
+- **Real-time Feedback:** Instant toast notifications showing extraction success rates.
+- **Transparency:** Clearly distinguishes between high-confidence AST parsing and fallback extraction.
 
 ---
 
