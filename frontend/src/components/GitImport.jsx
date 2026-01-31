@@ -143,7 +143,13 @@ const GitImport = ({ onImportSuccess }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const debouncedEstimate = useCallback(
         debounce(async (url) => {
-            if (!url || !url.includes('github.com')) return;
+            if (!url) return;
+            try {
+                const parsedUrl = new URL(url);
+                if (parsedUrl.hostname !== 'github.com' && parsedUrl.hostname !== 'www.github.com') return;
+            } catch (e) {
+                return;
+            }
             try {
                 const data = await estimateRepo(url);
                 setEstimate(data);
