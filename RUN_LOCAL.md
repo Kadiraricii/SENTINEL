@@ -111,20 +111,25 @@ npm audit fix
 
 ---
 
-## 📦 Kurulu Paketler
+## 📦 Teknoloji Yığıtı & Sürümler
 
 ### Backend (Python)
-- FastAPI 0.104.1
-- Tree-sitter 0.20.4 (7/8 language)
-- PyMuPDF 1.23.7
-- SQLAlchemy 2.0.23
-- Pydantic 2.5.0
+- **Framework:** FastAPI 0.104+
+- **Parsing:** Tree-sitter (15+ Dil Desteği)
+- **Veritabanı:** SQLite / PostgreSQL (Ready)
+- **Araçlar:** PyMuPDF, Python-docx, GitPython
 
 ### Frontend (Node.js)
-- React 18.2.0
-- Vite 5.4.21
-- TailwindCSS 3.3.5
-- Monaco Editor 4.6.0
+- **Framework:** React 18.2+
+- **Build:** Vite 5.0+
+- **UI:** TailwindCSS 3.3+
+- **Editor:** Monaco Editor (VS Code motoru)
+- **Charts:** Recharts
+
+### 🌟 Yeni Özellikler (v2.1)
+- **Fast Forward:** Git analizlerinde bekleme süresini atlama.
+- **Command+K:** Global arama ve navigasyon menüsü.
+- **Structured Data:** JSON, HTML, CSS, SQL parsing desteği.
 
 ---
 
