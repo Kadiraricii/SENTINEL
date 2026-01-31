@@ -102,8 +102,12 @@ async def analyze_repo(
             
         db.commit()
         
+        from app.routes.batch import batch_processors
+        
         # 5. Start Batch Processing
         processor = BatchProcessor(db)
+        batch_processors[batch_id] = processor  # Register for status polling
+        
         # Run in background
         background_tasks.add_task(
             processor.process_batch, 
