@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Command } from 'cmdk';
-import { Search, Home, LayoutDashboard, Upload, Clock, Sun, Moon, RefreshCw, X } from 'lucide-react';
+import { Search, Home, LayoutDashboard, Upload, Clock, Sun, Moon, RefreshCw, X, HelpCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const CommandMenu = () => {
@@ -65,6 +65,7 @@ const CommandMenu = () => {
                             <CommandItem icon={Upload} label="Upload" onSelect={() => runCommand(() => navigate('/upload'))} />
                             <CommandItem icon={Search} label="Search" onSelect={() => runCommand(() => navigate('/search'))} />
                             <CommandItem icon={Clock} label="History" onSelect={() => runCommand(() => navigate('/history'))} />
+                            <CommandItem icon={HelpCircle} label="Q&A Knowledge Base" onSelect={() => runCommand(() => navigate('/qa'))} />
                         </Command.Group>
 
                         <Command.Group heading="System" className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 px-2 mt-4">
