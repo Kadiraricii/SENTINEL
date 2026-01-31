@@ -11,7 +11,8 @@ const randomColors = (count) => {
 export function TubesBackground({
     children,
     className,
-    enableClickInteraction = true
+    enableClickInteraction = true,
+    sidebarOffset = 0
 }) {
     const canvasRef = useRef(null);
     const [isLoaded, setIsLoaded] = useState(false);
@@ -76,17 +77,22 @@ export function TubesBackground({
 
     return (
         <div
-            className={cn("relative w-full min-h-screen bg-black select-none", className)}
+            className={cn("fixed inset-0 w-full h-full bg-black select-none overflow-auto z-0", className)}
+            style={{ left: `${sidebarOffset}px` }}
             onClick={handleClick}
         >
             <canvas
                 ref={canvasRef}
-                className="fixed inset-0 w-full h-full block pointer-events-none"
-                style={{ touchAction: 'none' }}
+                className="fixed inset-0 block pointer-events-none z-0"
+                style={{
+                    touchAction: 'none',
+                    left: `${sidebarOffset}px`,
+                    width: `calc(100% - ${sidebarOffset}px)`
+                }}
             />
 
             {/* Content Overlay */}
-            <div className="relative z-10 w-full h-full pointer-events-none">
+            <div className="relative z-10 w-full min-h-full pointer-events-none">
                 {children}
             </div>
         </div>
