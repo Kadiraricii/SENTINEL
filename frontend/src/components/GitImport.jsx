@@ -80,23 +80,27 @@ const AnalysisTerminal = ({ estimatedSeconds, isReady, onSkip }) => {
                         <div className={`w-32 h-32 rounded-full absolute inset-0 ${isReady ? 'bg-green-500/20 animate-pulse' : 'bg-purple-500/10 animate-ping'}`}></div>
                         <div className={`w-32 h-32 border rounded-full ${isReady ? 'border-green-400 animate-none' : 'border-purple-500/30 animate-spin-slow'}`}></div>
                         <div className="w-32 h-32 flex items-center justify-center font-bold text-2xl z-10">
-                            <span className={isReady ? 'text-green-400' : 'text-purple-200'}>{timeLeft}s</span>
+                            {isReady ? (
+                                <span className="text-green-400 animate-pulse text-xl tracking-widest">READY</span>
+                            ) : (
+                                <span className="text-purple-200">{timeLeft}s</span>
+                            )}
                         </div>
                     </div>
 
                     <p className={`mt-8 text-xs uppercase tracking-widest animate-pulse ${isReady ? 'text-green-400' : 'text-purple-400/70'}`}>
-                        {isReady ? 'Analysis Complete' : 'Processing Repository'}
+                        {isReady ? 'Analysis Complete - Waiting for User' : 'Processing Repository'}
                     </p>
 
                     {/* FAST FORWARD BUTTON */}
                     {isReady && (
                         <button
                             onClick={onSkip}
-                            className="mt-6 flex items-center space-x-2 bg-green-500 hover:bg-green-400 text-black font-bold px-6 py-3 rounded-full transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(34,197,94,0.4)] animate-bounce"
+                            className="mt-6 flex items-center space-x-2 bg-green-500 hover:bg-green-400 text-black font-bold px-8 py-4 rounded-full transition-all transform hover:scale-105 shadow-[0_0_30px_rgba(34,197,94,0.6)] animate-bounce border-2 border-white/20"
                             style={{ pointerEvents: 'auto', cursor: 'pointer' }}
                         >
-                            <span>Ready - Fast Forward</span>
-                            <ArrowRight size={18} />
+                            <span>CLICK TO VIEW RESULTS</span>
+                            <ArrowRight size={20} />
                         </button>
                     )}
                 </div>
@@ -252,32 +256,32 @@ const GitImport = ({ onImportSuccess }) => {
     return (
         <div className={`w-full mx-auto transition-all duration-500 ease-in-out ${activeTab === 'url' ? 'max-w-2xl' : 'max-w-7xl'}`}>
             {/* Header Card with Gradient Border */}
-            <div className="relative mb-8 group">
+            <div className="relative mb-5 group">
                 {/* Gradient Border Effect */}
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-1000"></div>
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-xl blur opacity-30 group-hover:opacity-50 transition duration-1000"></div>
 
-                <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-                    <div className="flex items-center space-x-4">
+                <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-4">
+                    <div className="flex items-center space-x-3">
                         <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl blur-md opacity-50"></div>
-                            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
-                                <Github className="text-white" size={32} />
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl blur-md opacity-50"></div>
+                            <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+                                <Github className="text-white" size={24} />
                             </div>
                         </div>
                         <div>
-                            <h3 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Import from Git</h3>
-                            <p className="text-gray-400 text-sm mt-1">Analyze public repositories directly</p>
+                            <h3 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Import from Git</h3>
+                            <p className="text-gray-400 text-xs mt-0.5">Analyze public repositories directly</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Tab Switcher - Enhanced */}
-            <div className="flex space-x-3 mb-8 bg-black/40 backdrop-blur-xl p-2 rounded-2xl border border-white/10 shadow-xl">
+            <div className="flex space-x-2 mb-5 bg-black/40 backdrop-blur-xl p-1.5 rounded-xl border border-white/10 shadow-xl">
                 <button
                     type="button"
                     onClick={() => setActiveTab('url')}
-                    className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl transition-all duration-300 font-semibold text-sm relative overflow-hidden ${activeTab === 'url'
+                    className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-300 font-semibold text-sm relative overflow-hidden ${activeTab === 'url'
                         ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/50'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                         }`}
@@ -285,13 +289,13 @@ const GitImport = ({ onImportSuccess }) => {
                     {activeTab === 'url' && (
                         <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 animate-pulse"></div>
                     )}
-                    <Link size={18} className="relative z-10" />
+                    <Link size={16} className="relative z-10" />
                     <span className="relative z-10">Direct URL</span>
                 </button>
                 <button
                     type="button"
                     onClick={() => setActiveTab('browse')}
-                    className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl transition-all duration-300 font-semibold text-sm relative overflow-hidden ${activeTab === 'browse'
+                    className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 rounded-lg transition-all duration-300 font-semibold text-sm relative overflow-hidden ${activeTab === 'browse'
                         ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/50'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                         }`}
@@ -299,34 +303,34 @@ const GitImport = ({ onImportSuccess }) => {
                     {activeTab === 'browse' && (
                         <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 animate-pulse"></div>
                     )}
-                    <Users size={18} className="relative z-10" />
+                    <Users size={16} className="relative z-10" />
                     <span className="relative z-10">Browse User Repos</span>
                 </button>
             </div>
 
             {/* Tab Content */}
             {activeTab === 'url' ? (
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Repo URL Input - Premium */}
                     <div className="relative group">
-                        <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-3 flex items-center space-x-2">
+                        <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2 flex items-center space-x-2">
                             <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
                             <span>Repository URL</span>
                         </label>
 
                         {/* Gradient Border */}
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur opacity-20 group-hover:opacity-40 group-focus-within:opacity-60 transition duration-500"></div>
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg blur opacity-20 group-hover:opacity-40 group-focus-within:opacity-60 transition duration-500"></div>
 
                         <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                                <Github className="text-gray-500 group-focus-within:text-purple-400 transition-colors" size={20} />
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                <Github className="text-gray-500 group-focus-within:text-purple-400 transition-colors" size={18} />
                             </div>
                             <input
                                 type="url"
                                 placeholder="https://github.com/username/repo"
                                 value={repoUrl}
                                 onChange={(e) => setRepoUrl(e.target.value)}
-                                className="relative w-full bg-black/60 backdrop-blur-xl border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-base placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/30 transition-all shadow-lg"
+                                className="relative w-full bg-black/60 backdrop-blur-xl border border-white/10 rounded-lg py-3 pl-11 pr-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/30 transition-all shadow-lg"
                                 required
                             />
                         </div>

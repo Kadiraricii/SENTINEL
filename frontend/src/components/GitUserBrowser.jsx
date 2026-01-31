@@ -72,7 +72,7 @@ const GitUserBrowser = ({ onRepoSelect }) => {
                             onChange={(e) => setUsername(e.target.value)}
                             onKeyPress={handleKeyPress}
                             autoComplete="off"
-                            className="w-full bg-transparent border-none rounded-lg px-12 py-3 text-white placeholder-gray-500 focus:outline-none text-base font-medium"
+                            className="w-full bg-transparent border-none rounded-lg px-11 py-2.5 text-white placeholder-gray-500 focus:outline-none text-sm font-medium"
                         />
                         {username && (
                             <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
@@ -83,7 +83,7 @@ const GitUserBrowser = ({ onRepoSelect }) => {
                     <button
                         onClick={handleFetchRepos}
                         disabled={loading}
-                        className="relative px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-lg font-bold text-white text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden group"
+                        className="relative px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-lg font-bold text-white text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden group"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                         <span className="relative flex items-center gap-2">
@@ -118,12 +118,12 @@ const GitUserBrowser = ({ onRepoSelect }) => {
 
             {/* Stats Bar with User Avatar */}
             {totalRepos > 0 && (
-                <div className="flex items-center justify-between bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-blue-500/10 backdrop-blur-sm border border-white/10 rounded-xl p-4 animate-fade-in">
+                <div className="flex items-center justify-between bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-blue-500/10 backdrop-blur-sm border border-white/10 rounded-xl p-3 animate-fade-in">
                     <div className="flex items-center gap-4">
                         {/* User Avatar */}
                         <div className="relative group">
                             <div className="absolute -inset-0.5 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full blur opacity-60 group-hover:opacity-80 transition"></div>
-                            <div className="relative w-14 h-14 rounded-full border-2 border-white/20 overflow-hidden bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                            <div className="relative w-11 h-11 rounded-full border-2 border-white/20 overflow-hidden bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
                                 <img
                                     src={`https://github.com/${username}.png?size=200`}
                                     alt={`@${username}`}
@@ -137,7 +137,7 @@ const GitUserBrowser = ({ onRepoSelect }) => {
                                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                                 @{username}
                             </p>
-                            <p className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                            <p className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
                                 {totalRepos} {totalRepos === 1 ? 'repository' : 'repositories'}
                             </p>
                         </div>
@@ -158,18 +158,18 @@ const GitUserBrowser = ({ onRepoSelect }) => {
                             <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
 
                             {/* Card - Premium Large Design */}
-                            <div className="relative bg-[#1a1b26] border border-white/5 rounded-2xl p-6 hover:border-purple-500/50 hover:shadow-2xl hover:shadow-purple-900/20 transition-all duration-300 h-full flex flex-col min-h-[340px] group-hover:-translate-y-1">
+                            <div className="relative bg-[#1a1b26] border border-white/5 rounded-xl p-5 hover:border-purple-500/50 hover:shadow-2xl hover:shadow-purple-900/20 transition-all duration-300 h-full flex flex-col min-h-[280px] group-hover:-translate-y-1">
                                 {/* Gradient Header Accent */}
-                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-t-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-t-xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
 
                                 {/* Header */}
-                                <div className="flex items-start justify-between mb-5 mt-2">
+                                <div className="flex items-start justify-between mb-4 mt-2">
                                     <div className="flex-1 min-w-0 pr-3">
                                         <div className="flex items-center gap-3 mb-2">
-                                            <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20 transition-colors">
-                                                <GitFork size={20} />
+                                            <div className="p-1.5 rounded-lg bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20 transition-colors">
+                                                <GitFork size={18} />
                                             </div>
-                                            <h3 className="text-white font-bold text-lg group-hover:text-purple-300 transition-colors break-words leading-tight">
+                                            <h3 className="text-white font-bold text-base group-hover:text-purple-300 transition-colors break-words leading-tight">
                                                 {repo.name}
                                             </h3>
                                         </div>

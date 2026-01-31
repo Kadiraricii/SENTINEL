@@ -5,6 +5,7 @@ import MonacoEditorModal from './MonacoEditor';
 
 function CodeCard({ block, onUpdate }) {
     const [isEditing, setIsEditing] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
     const [feedbackSent, setFeedbackSent] = useState(false);
 
     const getLanguageColor = (language) => {
@@ -106,9 +107,35 @@ function CodeCard({ block, onUpdate }) {
                 </div>
 
                 {/* Code Preview */}
-                <pre className="bg-black/30 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto font-mono max-h-60">
-                    {block.content}
-                </pre>
+                <div className="relative group">
+                    <pre className={`bg-black/30 p-4 rounded-lg text-sm text-gray-300 overflow-x-auto font-mono transition-all duration-500 ${isExpanded ? 'max-h-[600px] overflow-y-auto' : 'max-h-24 overflow-hidden'}`} style={{ scrollbarWidth: 'thin' }}>
+                        <code>
+                            {block.content}
+                        </code>
+                    </pre>
+
+                    {/* Gradient Overlay & View Context Button (Only if not expanded) */}
+                    {!isExpanded && block.content.split('\n').length > 4 && (
+                        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/90 to-transparent flex items-end justify-center pb-1 rounded-b-lg cursor-pointer" onClick={() => setIsExpanded(true)}>
+                            <button
+                                className="bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/30 text-purple-300 text-[10px] px-3 py-1 rounded-full flex items-center space-x-1 backdrop-blur-sm transition-all hover:scale-105 mb-1"
+                            >
+                                <span>View Context</span>
+                                <Code size={10} />
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Collapse Button (Only if expanded) */}
+                    {isExpanded && (
+                        <button
+                            onClick={() => setIsExpanded(false)}
+                            className="absolute bottom-2 right-2 bg-black/60 hover:bg-black/80 text-gray-400 text-[10px] px-2 py-1 rounded hover:text-white transition-colors backdrop-blur-sm border border-white/5"
+                        >
+                            Collapse
+                        </button>
+                    )}
+                </div>
 
                 {/* Actions */}
                 <div className="mt-4 flex gap-2">
