@@ -124,3 +124,31 @@ async def analyze_repo(
         # If we failed before creating batch, cleanup
         # If batch created, cleanup will happen eventually (TODO: Implement cleanup job)
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/users/{username}/repos")
+async def get_user_repos(username: str):
+    """
+    Fetch all public repositories for a GitHub user.
+    
+    Args:
+        username: GitHub username (e.g., "torvalds", "microsoft")
+        
+    Returns:
+        List of repository metadata objects
+    """
+    git_service = GitService()
+    
+    try:
+        repos = git_service.fetch_user_repos(username)
+        
+        return {
+            "username": username,
+            "total_repos": len(repos),
+            "repositories": repos
+        }
+        
+    except ValueError as e:
+        # Handle user not found, rate limit, etc.
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch repositories: {str(e)}")

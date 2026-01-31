@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 from typing import List, Dict, Optional
 from pathlib import Path
 import git
+import requests  # For GitHub API calls
 
 class GitService:
     """Service to handle Git repository operations."""
@@ -170,3 +171,80 @@ class GitService:
         """Delete the cloned directory."""
         if os.path.exists(repo_path):
             shutil.rmtree(repo_path)
+    
+    def fetch_user_repos(self, username: str) -> List[Dict]:
+        """
+        Fetch all public repositories for a GitHub user.
+        
+        Args:
+            username: GitHub username (e.g., "torvalds")
+            
+        Returns:
+            List of repository dictionaries with metadata
+            
+        Raises:
+            ValueError: If username is invalid or API request fails
+        """
+        base_url = "https://api.github.com/users/{}/repos"
+        all_repos = []
+        page = 1
+        per_page = 100  # Maximum allowed by GitHub API
+        
+        while True:
+            url = base_url.format(username)
+            params = {
+                'per_page': per_page,
+                'page': page,
+                'sort': 'updated',  # Most recently updated first
+                'direction': 'desc'
+            }
+            
+            headers = {
+                'Accept': 'application/vnd.github+json',
+                'User-Agent': 'SENTINEL-Code-Extraction-System'
+            }
+            
+            try:
+                response = requests.get(url, params=params, headers=headers, timeout=10)
+                
+                # Handle rate limiting
+                if response.status_code == 403 and 'X-RateLimit-Remaining' in response.headers:
+                    if response.headers.get('X-RateLimit-Remaining') == '0':
+                        raise ValueError("GitHub API rate limit exceeded. Please try again later.")
+                
+                # Handle 404 (user not found)
+                if response.status_code == 404:
+                    raise ValueError(f"GitHub user '{username}' not found")
+                
+                # Raise for other HTTP errors
+                response.raise_for_status()
+                
+                repos = response.json()
+                
+                # If no repos returned, we've reached the end
+                if not repos:
+                    break
+                    
+                # Extract relevant metadata
+                for repo in repos:
+                    all_repos.append({
+                        'name': repo['name'],
+                        'full_name': repo['full_name'],
+                        'description': repo.get('description', 'No description'),
+                        'language': repo.get('language', 'Unknown'),
+                        'stargazers_count': repo.get('stargazers_count', 0),
+                        'html_url': repo['html_url'],
+                        'clone_url': repo['clone_url'],
+                        'updated_at': repo['updated_at']
+                    })
+                
+                # If we got less than per_page results, this is the last page
+                if len(repos) < per_page:
+                    break
+                    
+                page += 1
+                
+            except requests.exceptions.RequestException as e:
+                raise ValueError(f"Failed to fetch repositories: {str(e)}")
+        
+        return all_repos
