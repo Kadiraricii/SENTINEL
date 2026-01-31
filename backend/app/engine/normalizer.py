@@ -16,7 +16,8 @@ class FileNormalizer:
     
     SUPPORTED_FORMATS = {
         '.pdf', '.docx', '.txt', '.md', '.log', '.sh', '.bat',
-        '.config', '.ini', '.env', '.yaml', '.yml', '.json', '.xml'
+        '.config', '.ini', '.env', '.yaml', '.yml', '.json', '.xml',
+        '.html', '.htm', '.css', '.js', '.ts', '.csv', '.sql'
     }
     
     def __init__(self):
