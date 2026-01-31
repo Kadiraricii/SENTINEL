@@ -21,6 +21,7 @@ export default {
                 'float': 'float 3s ease-in-out infinite',
                 'glow': 'glow 2s ease-in-out infinite alternate',
                 'shimmer': 'shimmer 2.5s linear infinite',
+                'scan-line': 'scan-line 2s ease-in-out infinite',
             },
             keyframes: {
                 float: {
@@ -34,6 +35,11 @@ export default {
                 shimmer: {
                     '0%': { backgroundPosition: '-1000px 0' },
                     '100%': { backgroundPosition: '1000px 0' },
+                },
+                'scan-line': {
+                    '0%': { top: '0%', opacity: '0' },
+                    '50%': { opacity: '1' },
+                    '100%': { top: '100%', opacity: '0' },
                 }
             }
         },

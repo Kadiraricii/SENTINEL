@@ -1,11 +1,11 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Github, GitBranch, ArrowRight, Loader, Lock, Timer } from 'lucide-react';
-import { analyzeRepo, estimateRepo } from '../services/api';
+import { Github, GitBranch, ArrowRight, Loader, Lock, Timer, Link, Users } from 'lucide-react';
+import { analyzeRepo, estimateRepo, getBatchStatus } from '../services/api';
 import debounce from 'lodash.debounce';
+import GitUserBrowser from './GitUserBrowser';
 
-const AnalysisTerminal = ({ estimatedSeconds }) => {
+const AnalysisTerminal = ({ estimatedSeconds, isReady, onSkip }) => {
     const [lines, setLines] = useState([]);
     const [timeLeft, setTimeLeft] = useState(estimatedSeconds || 15);
 
@@ -45,10 +45,16 @@ const AnalysisTerminal = ({ estimatedSeconds }) => {
             timeouts.push(timeout);
         });
 
+        // If ready, append success message
+        if (isReady) {
+            setLines(prev => [...prev, '> ANALYSIS COMPLETE: 100% success']);
+            setLines(prev => [...prev, '> WAITING FOR SECURITY TIMER...']);
+        }
+
         return () => {
             timeouts.forEach(clearTimeout);
         };
-    }, []);
+    }, [isReady]);
 
     return createPortal(
         // Full screen blocking overlay
@@ -69,19 +75,34 @@ const AnalysisTerminal = ({ estimatedSeconds }) => {
                 </div>
 
                 {/* Pulsing Orb & Timer */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-20">
                     <div className="relative">
-                        <div className="w-32 h-32 bg-purple-500/10 rounded-full animate-ping absolute inset-0"></div>
-                        <div className="w-32 h-32 border border-purple-500/30 rounded-full animate-spin-slow"></div>
-                        <div className="w-32 h-32 flex items-center justify-center text-purple-200 font-bold text-2xl z-10">
-                            {timeLeft}s
+                        <div className={`w-32 h-32 rounded-full absolute inset-0 ${isReady ? 'bg-green-500/20 animate-pulse' : 'bg-purple-500/10 animate-ping'}`}></div>
+                        <div className={`w-32 h-32 border rounded-full ${isReady ? 'border-green-400 animate-none' : 'border-purple-500/30 animate-spin-slow'}`}></div>
+                        <div className="w-32 h-32 flex items-center justify-center font-bold text-2xl z-10">
+                            <span className={isReady ? 'text-green-400' : 'text-purple-200'}>{timeLeft}s</span>
                         </div>
                     </div>
-                    <p className="mt-8 text-purple-400/70 text-xs uppercase tracking-widest animate-pulse">Processing Repository</p>
+
+                    <p className={`mt-8 text-xs uppercase tracking-widest animate-pulse ${isReady ? 'text-green-400' : 'text-purple-400/70'}`}>
+                        {isReady ? 'Analysis Complete' : 'Processing Repository'}
+                    </p>
+
+                    {/* FAST FORWARD BUTTON */}
+                    {isReady && (
+                        <button
+                            onClick={onSkip}
+                            className="mt-6 flex items-center space-x-2 bg-green-500 hover:bg-green-400 text-black font-bold px-6 py-3 rounded-full transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(34,197,94,0.4)] animate-bounce"
+                            style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                        >
+                            <span>Ready - Fast Forward</span>
+                            <ArrowRight size={18} />
+                        </button>
+                    )}
                 </div>
 
                 {/* Terminal Text */}
-                <div className="relative z-10 space-y-2 flex-1 overflow-hidden">
+                <div className="relative z-10 space-y-2 flex-1 overflow-hidden opacity-50">
                     {lines.map((line, index) => (
                         <div key={index} className="text-green-400 animate-fade-in shadow-green-glow text-xs md:text-sm">
                             {line}
@@ -94,7 +115,7 @@ const AnalysisTerminal = ({ estimatedSeconds }) => {
                 </div>
 
                 <div className="relative z-10 mt-4 border-t border-white/10 pt-2 flex justify-between text-xs text-gray-500 uppercase tracking-widest">
-                    <span>Task: Git Clone</span>
+                    <span>Task: {isReady ? 'COMPLETE' : 'Analyze'}</span>
                     <div className="flex items-center space-x-2">
                         <Timer size={14} />
                         <span>Est. Remaining: {timeLeft}s</span>
@@ -112,6 +133,7 @@ const GitImport = ({ onImportSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [estimate, setEstimate] = useState(null);
+    const [activeTab, setActiveTab] = useState('url'); // 'url' or 'browse'
 
     // Debounced estimation
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -132,138 +154,260 @@ const GitImport = ({ onImportSuccess }) => {
         debouncedEstimate(repoUrl);
     }, [repoUrl, debouncedEstimate]);
 
+    // Fast Forward State
+    const [analysisReady, setAnalysisReady] = useState(false);
+    const [analysisResult, setAnalysisResult] = useState(null);
+    const [resolveWait, setResolveWait] = useState(null);
+
+    const handleSkipWait = () => {
+        if (resolveWait) {
+            resolveWait(); // Break the wait promise
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!repoUrl) return;
 
         setLoading(true);
         setError(null);
+        setAnalysisReady(false);
+        setAnalysisResult(null);
 
         try {
-            // 1. Ensure we have an estimate (fetch if missing/stale)
+            // 1. Ensure we have an estimate
             let currentEstimate = estimate;
             if (!currentEstimate && repoUrl) {
                 try {
                     currentEstimate = await estimateRepo(repoUrl);
-                    setEstimate(currentEstimate); // Update UI
+                    setEstimate(currentEstimate);
                 } catch (err) {
                     console.warn('Late estimation failed', err);
                 }
             }
 
-            // 2. Determine wait time
-            const waitSeconds = currentEstimate?.estimated_seconds || 15;
+            // 2. Start Analysis Request
+            const result = await analyzeRepo(repoUrl, branch || null);
+            const batchId = result.batch_id;
 
-            const minWaitPromise = new Promise(resolve => {
-                setTimeout(resolve, waitSeconds * 1000);
+            // 3. Wait loop with Polling and "Early Exit"
+            const waitSeconds = currentEstimate?.estimated_seconds || 15;
+            const startTime = Date.now();
+            const minWaitTime = waitSeconds * 1000;
+
+            await new Promise((resolve) => {
+                const interval = setInterval(async () => {
+                    try {
+                        // Check batch status using API client (handles base URL)
+                        const status = await getBatchStatus(batchId);
+
+                        // Check if complete
+                        if (status.overall_status === 'complete' || status.overall_status === 'partial_failure') {
+                            if (!analysisReady) {
+                                setAnalysisReady(true);
+                                setAnalysisResult(result);
+                                setResolveWait(() => resolve); // Store resolver to call later
+                            }
+
+                            // If we already set ready, we just wait for user to click skip OR time to run out
+                        }
+                    } catch (err) {
+                        console.error("Polling error", err);
+                    }
+
+                    // Auto-resolve if time is up
+                    if (Date.now() - startTime > minWaitTime) {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                }, 2000);
             });
 
-            // 3. Call API and wait
-            const [result] = await Promise.all([
-                analyzeRepo(repoUrl, branch || null),
-                minWaitPromise
-            ]);
-
-            // Pass result up only
             onImportSuccess(result);
+
         } catch (err) {
             console.error(err);
             setError(err.response?.data?.detail || 'Failed to analyze repository');
-        } finally {
             setLoading(false);
         }
     };
 
+    const handleRepoSelect = (cloneUrl) => {
+        // When user selects a repo from browser, switch to URL tab and populate
+        setRepoUrl(cloneUrl);
+        setActiveTab('url');
+        // Trigger estimate
+        debouncedEstimate(cloneUrl);
+    };
+
     if (loading && !error) {
-        return <AnalysisTerminal estimatedSeconds={estimate?.estimated_seconds} />;
+        return (
+            <AnalysisTerminal
+                estimatedSeconds={estimate?.estimated_seconds}
+                isReady={analysisReady}
+                onSkip={handleSkipWait}
+            />
+        );
     }
 
     return (
-        <div className="glass-strong p-8 rounded-2xl border border-white/5 bg-[#1a1b26]">
-            <div className="flex items-center space-x-3 mb-6">
-                <Github className="text-white" size={32} />
-                <div>
-                    <h3 className="text-xl font-bold text-white">Import from Git</h3>
-                    <p className="text-gray-400 text-sm">Analyze public repositories directly</p>
+        <div className={`w-full mx-auto transition-all duration-500 ease-in-out ${activeTab === 'url' ? 'max-w-2xl' : 'max-w-7xl'}`}>
+            {/* Header Card with Gradient Border */}
+            <div className="relative mb-8 group">
+                {/* Gradient Border Effect */}
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-1000"></div>
+
+                <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
+                    <div className="flex items-center space-x-4">
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl blur-md opacity-50"></div>
+                            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+                                <Github className="text-white" size={32} />
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Import from Git</h3>
+                            <p className="text-gray-400 text-sm mt-1">Analyze public repositories directly</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Repo URL */}
-                <div>
-                    <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                        Repository URL
-                    </label>
-                    <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Github className="text-gray-500 group-focus-within:text-purple-400" size={18} />
-                        </div>
-                        <input
-                            type="url"
-                            placeholder="https://github.com/username/repo"
-                            value={repoUrl}
-                            onChange={(e) => setRepoUrl(e.target.value)}
-                            className="w-full bg-black/20 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
-                            required
-                        />
-                    </div>
-                    {estimate && repoUrl && (
-                        <div className="mt-2 text-xs text-purple-400 flex items-center space-x-2 animate-fade-in">
-                            <Timer size={12} />
-                            <span>Estimated Time: ~{estimate.estimated_seconds}s ({estimate.size_mb} MB)</span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Branch (Optional) */}
-                <div>
-                    <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                        Branch (Optional)
-                    </label>
-                    <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <GitBranch className="text-gray-500 group-focus-within:text-purple-400" size={18} />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="main"
-                            value={branch}
-                            onChange={(e) => setBranch(e.target.value)}
-                            className="w-full bg-black/20 border border-white/10 rounded-lg py-3 pl-10 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
-                        />
-                    </div>
-                </div>
-
-                {error && (
-                    <div className="text-red-400 text-sm bg-red-500/10 p-3 rounded-lg border border-red-500/20">
-                        {error}
-                    </div>
-                )}
-
+            {/* Tab Switcher - Enhanced */}
+            <div className="flex space-x-3 mb-8 bg-black/40 backdrop-blur-xl p-2 rounded-2xl border border-white/10 shadow-xl">
                 <button
-                    type="submit"
-                    disabled={loading || !repoUrl}
-                    className={`w-full py-4 rounded-xl font-bold flex items-center justify-center space-x-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] ${loading || !repoUrl
-                        ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-900/20'
+                    type="button"
+                    onClick={() => setActiveTab('url')}
+                    className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl transition-all duration-300 font-semibold text-sm relative overflow-hidden ${activeTab === 'url'
+                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/50'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
                         }`}
                 >
-                    {loading ? (
-                        <>
-                            <Loader className="animate-spin" size={20} />
-                            <span>Cloning & Analyzing...</span>
-                        </>
-                    ) : (
-                        <>
-                            <span>Start Analysis</span>
-                            <ArrowRight size={20} />
-                        </>
+                    {activeTab === 'url' && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 animate-pulse"></div>
                     )}
+                    <Link size={18} className="relative z-10" />
+                    <span className="relative z-10">Direct URL</span>
                 </button>
-            </form>
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('browse')}
+                    className={`flex-1 flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl transition-all duration-300 font-semibold text-sm relative overflow-hidden ${activeTab === 'browse'
+                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/50'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                >
+                    {activeTab === 'browse' && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 animate-pulse"></div>
+                    )}
+                    <Users size={18} className="relative z-10" />
+                    <span className="relative z-10">Browse User Repos</span>
+                </button>
+            </div>
 
-            <div className="mt-4 text-center text-xs text-gray-500">
-                Only public repositories are supported currently.
+            {/* Tab Content */}
+            {activeTab === 'url' ? (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Repo URL Input - Premium */}
+                    <div className="relative group">
+                        <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-3 flex items-center space-x-2">
+                            <span className="w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
+                            <span>Repository URL</span>
+                        </label>
+
+                        {/* Gradient Border */}
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur opacity-20 group-hover:opacity-40 group-focus-within:opacity-60 transition duration-500"></div>
+
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                                <Github className="text-gray-500 group-focus-within:text-purple-400 transition-colors" size={20} />
+                            </div>
+                            <input
+                                type="url"
+                                placeholder="https://github.com/username/repo"
+                                value={repoUrl}
+                                onChange={(e) => setRepoUrl(e.target.value)}
+                                className="relative w-full bg-black/60 backdrop-blur-xl border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-base placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/30 transition-all shadow-lg"
+                                required
+                            />
+                        </div>
+
+                        {estimate && repoUrl && (
+                            <div className="mt-3 text-sm text-purple-400 flex items-center space-x-2 animate-fade-in bg-purple-500/10 backdrop-blur-sm px-4 py-3 rounded-xl border border-purple-500/30 shadow-lg">
+                                <Timer size={16} />
+                                <span className="font-semibold">Estimated: ~{estimate.estimated_seconds}s</span>
+                                <span className="text-gray-500">•</span>
+                                <span className="text-gray-400">{estimate.size_mb} MB</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Branch Input - Premium */}
+                    <div className="relative group">
+                        <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-3 flex items-center space-x-2">
+                            <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
+                            <span>Branch (Optional)</span>
+                        </label>
+
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl blur opacity-20 group-hover:opacity-40 group-focus-within:opacity-60 transition duration-500"></div>
+
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                                <GitBranch className="text-gray-500 group-focus-within:text-indigo-400 transition-colors" size={20} />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="main"
+                                value={branch}
+                                onChange={(e) => setBranch(e.target.value)}
+                                className="relative w-full bg-black/60 backdrop-blur-xl border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white text-base placeholder-gray-600 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition-all shadow-lg"
+                            />
+                        </div>
+                    </div>
+
+                    {error && (
+                        <div className="text-red-300 text-sm bg-red-500/10 backdrop-blur-sm p-4 rounded-xl border border-red-500/30 font-medium flex items-center space-x-2 shadow-lg">
+                            <span className="text-red-500 text-xl">⚠</span>
+                            <span>{error}</span>
+                        </div>
+                    )}
+
+                    {/* Submit Button - Ultra Premium */}
+                    <div className="relative group">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-2xl blur-lg opacity-30 group-hover:opacity-60 group-active:opacity-40 transition duration-500 animate-gradient"></div>
+
+                        <button
+                            type="submit"
+                            disabled={loading || !repoUrl}
+                            className={`relative w-full py-5 rounded-xl font-bold text-lg flex items-center justify-center space-x-3 transition-all duration-300 transform ${loading || !repoUrl
+                                ? 'bg-gray-800/50 text-gray-500 cursor-not-allowed border border-gray-700/50'
+                                : 'bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 text-white hover:scale-[1.02] active:scale-[0.98] shadow-2xl shadow-purple-900/50 border border-purple-400/30'
+                                }`}
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader className="animate-spin" size={24} />
+                                    <span>Cloning & Analyzing...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>Start Analysis</span>
+                                    <ArrowRight size={24} className="group-hover:translate-x-1 transition-transform" />
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
+            ) : (
+                <GitUserBrowser onRepoSelect={handleRepoSelect} />
+            )}
+
+            {/* Footer Note */}
+            <div className="mt-6 text-center">
+                <div className="inline-flex items-center space-x-2 text-sm text-gray-500 bg-black/20 backdrop-blur-sm px-4 py-2.5 rounded-full border border-white/5">
+                    <Lock size={14} />
+                    <span>{activeTab === 'url' ? 'Only public repositories are supported currently' : 'Browse all public repos from any GitHub user'}</span>
+                </div>
             </div>
         </div>
     );
