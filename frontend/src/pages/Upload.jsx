@@ -4,8 +4,10 @@ import FileUpload from '../components/FileUpload';
 import GitImport from '../components/GitImport';
 import SplitView from '../components/SplitView';
 import ExportPanel from '../components/ExportPanel';
+import GitHubButton from '../components/GitHubButton';
 import { uploadFile, extractBlocks, getFileContent } from '../services/api';
 import { FileText, Github, CheckCircle, ChevronDown, ChevronUp, Folder, ArrowLeft, RefreshCw, Upload as UploadIcon } from 'lucide-react';
+import TubesBackground from '../components/ui/neon-flow';
 
 const FileList = ({ files, selectedId, onSelect }) => {
     // Determine initial state
@@ -231,91 +233,82 @@ const UploadPage = () => {
 
     // 2. Default Upload View
     return (
-        <div className="space-y-6 max-w-[1920px] mx-auto px-8 py-8 w-full">
-            {/* Header */}
-            <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-white mb-2">Upload & Analyze</h2>
-                <p className="text-gray-400">Upload files or import repositories for analysis.</p>
-            </div>
-
-            {/* If a file is uploaded, show it (similar to previous view) */}
-            {uploadFileId ? (
-                <div className="animate-fade-in">
-                    <div className="flex justify-between items-center mb-6 bg-[#1a1b26] p-4 rounded-xl border border-white/5">
-                        <div>
-                            <h3 className="text-white font-medium">Active File: <span className="text-purple-400">{uploadFileName}</span></h3>
-                            <p className="text-xs text-gray-500">ID: {uploadFileId}</p>
-                        </div>
-                        <button
-                            onClick={() => {
-                                setUploadFileId(null);
-                                setUploadContent('');
-                                setUploadBlocks([]);
-                            }}
-                            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors flex items-center space-x-2"
-                        >
-                            <ArrowLeft size={16} />
-                            <span>Back to Upload</span>
-                        </button>
-                    </div>
-
-                    <SplitView
-                        originalContent={uploadContent}
-                        extractedBlocks={uploadBlocks}
-                        onBlockUpdate={setUploadBlocks}
-                    />
-
-                    {uploadBlocks.length > 0 && (
-                        <div className="mt-6">
-                            <ExportPanel fileId={uploadFileId} totalBlocks={uploadBlocks.length} />
-                        </div>
-                    )}
+        <TubesBackground>
+            <div className="space-y-6 max-w-[1920px] mx-auto px-8 py-8 w-full pointer-events-auto">
+                {/* Header */}
+                <div className="text-center mb-8">
+                    <h2 className="text-3xl font-bold text-white mb-2">Upload & Analyze</h2>
+                    <p className="text-gray-400">Upload files or import repositories for analysis.</p>
                 </div>
-            ) : (
-                /* Tab Selection for NEW Upload/Import */
-                <div className="max-w-4xl mx-auto">
-                    <div className="flex justify-center space-x-4 mb-8">
-                        <button
-                            onClick={() => setActiveTab('upload')} // reuse concept but here it switches form
-                            className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all ${!gitResult && activeTab !== 'git-form' // default
-                                ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20'
-                                : 'bg-gray-800/50 text-gray-400 hover:bg-gray-800'
-                                }`}
-                        >
-                            <UploadIcon size={18} />
-                            <span>File Upload</span>
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('git-form')}
-                            className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all ${activeTab === 'git-form'
-                                ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20'
-                                : 'bg-gray-800/50 text-gray-400 hover:bg-gray-800'
-                                }`}
-                        >
-                            <Github size={18} />
-                            <span>Git Repository</span>
-                        </button>
-                    </div>
 
-                    <div className="glass-strong p-12 text-center rounded-2xl border border-white/5 bg-[#1a1b26] min-h-[400px] flex items-center justify-center">
-                        {activeTab === 'git-form' ? (
-                            <div className="w-full max-w-lg">
-                                <GitImport onImportSuccess={handleGitSuccess} />
+                {/* If a file is uploaded, show it (similar to previous view) */}
+                {uploadFileId ? (
+                    <div className="animate-fade-in">
+                        <div className="flex justify-between items-center mb-6 bg-[#1a1b26] p-4 rounded-xl border border-white/5">
+                            <div>
+                                <h3 className="text-white font-medium">Active File: <span className="text-purple-400">{uploadFileName}</span></h3>
+                                <p className="text-xs text-gray-500">ID: {uploadFileId}</p>
                             </div>
-                        ) : (
-                            <div className="w-full max-w-lg">
-                                <FileUpload onUpload={handleFileUpload} loading={loading} />
-                                {error && (
-                                    <div className="mt-4 p-4 bg-red-500/20 rounded-lg border border-red-500/50">
-                                        <p className="text-red-200">{error}</p>
-                                    </div>
-                                )}
+                            <button
+                                onClick={() => {
+                                    setUploadFileId(null);
+                                    setUploadContent('');
+                                    setUploadBlocks([]);
+                                }}
+                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition-colors flex items-center space-x-2"
+                            >
+                                <ArrowLeft size={16} />
+                                <span>Back to Upload</span>
+                            </button>
+                        </div>
+
+                        <SplitView
+                            originalContent={uploadContent}
+                            extractedBlocks={uploadBlocks}
+                            onBlockUpdate={setUploadBlocks}
+                        />
+
+                        {uploadBlocks.length > 0 && (
+                            <div className="mt-6">
+                                <ExportPanel fileId={uploadFileId} totalBlocks={uploadBlocks.length} />
                             </div>
                         )}
                     </div>
-                </div>
-            )}
-        </div>
+                ) : (
+                    /* Tab Selection for NEW Upload/Import */
+                    <div className="w-full">
+                        <div className="flex justify-center space-x-4 mb-8">
+                            <button
+                                onClick={() => setActiveTab('upload')}
+                                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all ${!gitResult && activeTab !== 'git-form'
+                                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20'
+                                    : 'bg-gray-800/50 text-gray-400 hover:bg-gray-800'
+                                    }`}
+                            >
+                                <UploadIcon size={18} />
+                                <span>File Upload</span>
+                            </button>
+                            <GitHubButton onClick={() => setActiveTab('git-form')} />
+                        </div>
+
+                        <div className="w-full">
+                            {activeTab === 'git-form' ? (
+                                <GitImport onImportSuccess={handleGitSuccess} />
+                            ) : (
+                                <div className="w-full max-w-lg mx-auto">
+                                    <FileUpload onUpload={handleFileUpload} loading={loading} />
+                                    {error && (
+                                        <div className="mt-4 p-4 bg-red-500/20 rounded-lg border border-red-500/50">
+                                            <p className="text-red-200">{error}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </TubesBackground>
     );
 };
 
