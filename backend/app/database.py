@@ -25,11 +25,18 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Base class for models
 Base = declarative_base()
 
+# SQLite REGEXP implementation
+def regexp(expr, item):
+    reg = re.compile(expr)
+    return reg.search(item) is not None
 
 def get_db():
     """Dependency for FastAPI routes to get database session."""
     db = SessionLocal()
     try:
+        # Register REGEXP function for SQLite
+        if "sqlite" in str(engine.url):
+            engine.raw_connection().create_function("REGEXP", 2, regexp)
         yield db
     finally:
         db.close()

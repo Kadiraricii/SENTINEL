@@ -1,7 +1,7 @@
 """
 Database models for HPES.
 """
-from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey, Enum, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -66,6 +66,10 @@ class ExtractedBlock(Base):
     # Validation metadata
     confidence_score = Column(Float, default=0.0)  # 0-100
     validation_method = Column(String)  # tree-sitter, regex, schema, etc.
+    
+    # Secret Detection
+    has_secrets = Column(Boolean, default=False)
+    secret_type = Column(String, nullable=True)  # AWS, Google, Password, etc.
     
     # Block location in original document
     start_line = Column(Integer, nullable=True)

@@ -5,15 +5,16 @@ Handles parallel processing of multiple files with progress tracking
 import asyncio
 from typing import List, Dict
 from datetime import datetime
-import uuid
+import os
 from sqlalchemy.orm import Session
 
+# Importlar projenizin yapısına göre ayarlandı
 from app.models import FileMetadata, ExtractedBlock
 from app.engine.normalizer import FileNormalizer
 from app.engine.segmenter import Segmenter
 from app.engine.validator import Validator
 from app.engine.filter import PrecisionFilter
-
+from app.services.secret_scanner import SecretScanner
 
 class BatchProcessor:
     """Process multiple files in parallel with progress tracking"""
@@ -34,17 +35,7 @@ class BatchProcessor:
         file_ids: List[int],
         session_id: int = None
     ) -> Dict:
-        """
-        Process multiple files in parallel
-        
-        Args:
-            batch_id: Unique batch identifier
-            file_ids: List of file IDs to process
-            session_id: Optional session to link extracted blocks
-            
-        Returns:
-            Batch processing summary
-        """
+        """Process multiple files in parallel"""
         # Initialize batch status
         self.batch_status[batch_id] = {
             "total_files": len(file_ids),
@@ -61,7 +52,7 @@ class BatchProcessor:
             for file_id in file_ids
         ]
         
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+        await asyncio.gather(*tasks, return_exceptions=True)
         
         # Update final status
         self.batch_status[batch_id]["in_progress"] = False
@@ -76,8 +67,9 @@ class BatchProcessor:
         session_id: int = None
     ) -> Dict:
         """Process a single file within a batch"""
+        file = None
         try:
-            # Update file status
+            # Update file status initial
             self.batch_status[batch_id]["file_statuses"][file_id] = {
                 "status": "processing",
                 "start_time": datetime.utcnow(),
@@ -93,68 +85,68 @@ class BatchProcessor:
             if not file:
                 raise Exception(f"File {file_id} not found")
             
-            # Update file status in database
+            # Update DB status
             file.processing_status = "processing"
             self.db.commit()
             
             # Determine file path
-            # If original_path is absolute and exists (e.g. from Git clone), use it
-            # Otherwise fall back to uploads directory
-            import os
             if file.original_path and os.path.isabs(file.original_path) and os.path.exists(file.original_path):
                 file_path = file.original_path
             else:
-                file_path = f"data/uploads/{file.filename}"
+                # Fallback path logic
+                file_path = os.path.join("data", "uploads", file.filename)
             
-            # Normalize based on file type
+            # 1. Normalize
             if file.file_type == "pdf":
-                normalized_text = await asyncio.to_thread(
-                    self.normalizer.normalize_pdf, file_path
-                )
+                normalized_result = await asyncio.to_thread(self.normalizer.normalize_file, file_path)
+                normalized_text = normalized_result['content']
             elif file.file_type == "docx":
-                normalized_text = await asyncio.to_thread(
-                    self.normalizer.normalize_docx, file_path
-                )
-            else:  # txt or other text files
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                normalized_text = self.normalizer._normalize_text(content)
+                normalized_result = await asyncio.to_thread(self.normalizer.normalize_file, file_path)
+                normalized_text = normalized_result['content']
+            else:
+                # Text based files
+                normalized_result = await asyncio.to_thread(self.normalizer.normalize_file, file_path)
+                normalized_text = normalized_result['content']
             
-            # Segment text
+            # 2. Segment
+            # Returns List[CandidateBlock] objects
             segments = await asyncio.to_thread(
                 self.segmenter.segment, normalized_text
             )
             
-            # Validate and filter blocks
             extracted_blocks = []
             for segment in segments:
-                # Validate
-                result = self.validator.validate_block(segment['content'])
+                # 3. Validate
+                # Validator takes the whole CandidateBlock object, not just content string
+                result = self.validator.validate_block(segment, filename=file.filename)
                 
-                if result['is_valid']:
-                    # Filter
-                    filter_result = self.filter.filter_block(
-                        content=segment['content'],
-                        language=result.get('language'),
-                        confidence=result.get('confidence', 0)
-                    )
+                if result['valid']:
+                    # 4. Filter
+                    # PrecisionFilter uses 'should_accept_block' method and takes the validation result dict
+                    filter_result = self.filter.should_accept_block(result)
                     
-                    if filter_result['should_keep']:
+                    if filter_result['accept']:
+                        # 5. Secret Detection (Scan before saving)
+                        has_secrets = SecretScanner.has_secrets(segment.content)
+                        secret_types = SecretScanner.get_secret_types(segment.content) if has_secrets else []
+                        secret_str = ",".join(secret_types) if secret_types else None
+
                         # Save block
                         block = ExtractedBlock(
                             file_id=file_id,
                             session_id=session_id,
-                            content=segment['content'],
+                            content=segment.content,
                             language=result.get('language'),
-                            block_type=result.get('type', 'code'),
-                            confidence_score=filter_result.get(
-                                'adjusted_confidence',
-                                result.get('confidence', 0)
-                            ),
-                            validation_method=result.get('method', 'unknown'),
-                            start_line=segment.get('start_line'),
-                            end_line=segment.get('end_line')
+                            block_type=result.get('block_type', 'code'),
+                            # Use adjusted confidence if available, else validator confidence
+                            confidence_score=result.get('confidence_score', 0),
+                            validation_method=result.get('validation_method', 'unknown'),
+                            start_line=segment.start_line,
+                            end_line=segment.end_line,
+                            has_secrets=has_secrets,
+                            secret_type=secret_str
                         )
+                        
                         self.db.add(block)
                         extracted_blocks.append(block)
             
@@ -182,17 +174,22 @@ class BatchProcessor:
             
         except Exception as e:
             # Handle error
+            print(f"Error processing file {file_id}: {str(e)}") # Log for debug
             self.batch_status[batch_id]["failed_files"] += 1
-            self.batch_status[batch_id]["file_statuses"][file_id].update({
-                "status": "error",
-                "end_time": datetime.utcnow(),
-                "error": str(e)
-            })
+            if file_id in self.batch_status[batch_id]["file_statuses"]:
+                self.batch_status[batch_id]["file_statuses"][file_id].update({
+                    "status": "error",
+                    "end_time": datetime.utcnow(),
+                    "error": str(e)
+                })
             
-            # Update file in database
+            # Update file in database if possible
             if file:
-                file.processing_status = "error"
-                self.db.commit()
+                try:
+                    file.processing_status = "error"
+                    self.db.commit()
+                except:
+                    self.db.rollback()
             
             return {
                 "file_id": file_id,
