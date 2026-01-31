@@ -2,7 +2,7 @@
 import requests
 import os
 
-BASE_URL = "http://localhost:8000/api"
+BASE_URL = "http://localhost:8002/api"
 
 def test_upload():
     print("🧪 Debugging Upload...")

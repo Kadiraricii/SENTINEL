@@ -6,7 +6,7 @@ import requests
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-BASE_URL = "http://localhost:8000/api"
+BASE_URL = "http://localhost:8002/api"
 
 def test_batch_delete():
     print("Testing BATCH DELETE Endpoint...")

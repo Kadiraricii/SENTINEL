@@ -11,7 +11,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 # So we will try to delete a non-existent block to check 404, which confirms endpoint exists.
 # Checking 404 is safer than deleting random data.
 
-BASE_URL = "http://localhost:8000/api"
+BASE_URL = "http://localhost:8002/api"
 
 def test_delete_endpoint():
     print("Testing DELETE Block Endpoint...")
