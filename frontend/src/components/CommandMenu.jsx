@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Command } from 'cmdk';
-import { Search, Home, LayoutDashboard, Upload, Clock, Sun, Moon, RefreshCw, X, HelpCircle } from 'lucide-react';
+import { Search, Home, LayoutDashboard, Upload, Clock, Sun, Moon, RefreshCw, X, HelpCircle, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { resetSystem } from '../services/api';
+import { toast } from 'sonner';
 
 const CommandMenu = () => {
     const [open, setOpen] = useState(false);
     const navigate = useNavigate();
+    const commandInputRef = React.useRef(null);
 
     // Toggle with Cmd+K
     useEffect(() => {
@@ -19,6 +22,16 @@ const CommandMenu = () => {
         document.addEventListener('keydown', down);
         return () => document.removeEventListener('keydown', down);
     }, []);
+
+    // Force focus when opened
+    useEffect(() => {
+        if (open) {
+            // Small timeout to ensure DOM is ready
+            setTimeout(() => {
+                commandInputRef.current?.focus();
+            }, 50);
+        }
+    }, [open]);
 
     // Navigation Helper
     const runCommand = (command) => {
@@ -37,10 +50,13 @@ const CommandMenu = () => {
             />
 
             <div className="relative w-full max-w-2xl animate-fade-in-up">
-                <Command className="w-full bg-[#1a1b26] border border-white/10 rounded-xl shadow-2xl overflow-hidden">
-                    <div className="flex items-center border-b border-white/5 px-4 py-3">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl blur opacity-30 animate-pulse"></div>
+                <Command className="relative w-full bg-[#0f1016]/90 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl overflow-hidden">
+                    <div className="flex items-center border-b border-white/5 px-4 py-4">
                         <Search className="w-5 h-5 text-gray-400 mr-3" />
                         <Command.Input
+                            ref={commandInputRef}
+                            autoFocus
                             className="flex-1 bg-transparent text-white placeholder-gray-500 outline-none text-lg"
                             placeholder="Type a command or search..."
                         />
@@ -70,6 +86,22 @@ const CommandMenu = () => {
 
                         <Command.Group heading="System" className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 px-2 mt-4">
                             <CommandItem icon={RefreshCw} label="Reload Application" onSelect={() => runCommand(() => window.location.reload())} />
+                            <CommandItem
+                                icon={Trash2}
+                                label="Reset System (Danger)"
+                                onSelect={() => runCommand(async () => {
+                                    if (window.confirm("⚠️ DANGER: Reset System and delete all data?")) {
+                                        try {
+                                            await resetSystem();
+                                            toast.success("System reset complete");
+                                            setTimeout(() => window.location.reload(), 1000);
+                                        } catch (e) {
+                                            toast.error("Reset failed");
+                                        }
+                                    }
+                                })}
+                                className="text-red-400 group-hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20"
+                            />
                         </Command.Group>
                     </Command.List>
 
@@ -89,16 +121,19 @@ const CommandMenu = () => {
 };
 
 // Helper Item Component
-const CommandItem = ({ icon: Icon, label, onSelect }) => {
+const CommandItem = ({ icon: Icon, label, onSelect, className = "" }) => {
     return (
         <Command.Item
+            value={label}
             onSelect={onSelect}
-            className="flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-gray-300 hover:bg-purple-500/10 hover:text-purple-400 hover:border hover:border-purple-500/20 aria-selected:bg-purple-500/10 aria-selected:text-purple-400 aria-selected:border aria-selected:border-purple-500/20 transition-all group"
+            className={`flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer text-gray-400 border border-transparent 
+            aria-selected:bg-[#2e233d] aria-selected:text-white aria-selected:border-purple-500/30 
+            hover:bg-[#2e233d] hover:text-white hover:border-purple-500/30 font-medium transition-all duration-200 group ${className}`}
         >
-            <div className="p-2 rounded-md bg-white/5 group-hover:bg-purple-500/10 transition-colors">
+            <div className={`p-2 rounded-md bg-white/5 group-hover:bg-purple-500/20 group-aria-selected:bg-purple-500/20 transition-colors ${className ? 'group-hover:bg-red-500/20 group-aria-selected:bg-red-500/20' : ''}`}>
                 <Icon size={18} />
             </div>
-            <span className="font-medium text-sm">{label}</span>
+            <span className="text-sm">{label}</span>
         </Command.Item>
     );
 };

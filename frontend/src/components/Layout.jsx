@@ -62,6 +62,20 @@ const Layout = () => {
                     <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-900/10 rounded-full blur-[120px]"></div>
                 </div>
 
+                {/* Top Right Command Trigger */}
+                <div className="absolute top-6 right-8 z-50">
+                    <button
+                        onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+                        className="group flex items-center space-x-3 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(236,72,153,0.6)] hover:scale-105 transition-all duration-300 border border-white/20"
+                    >
+                        <Search size={16} className="text-white/90" />
+                        <span className="text-sm font-bold tracking-wide">Quick Actions</span>
+                        <div className="flex items-center ml-2 pl-2 border-l border-white/20">
+                            <span className="text-[10px] font-mono bg-black/20 px-2 py-0.5 rounded text-white/90">⌘K</span>
+                        </div>
+                    </button>
+                </div>
+
                 {/* Content Container */}
                 <div className="relative z-10 w-full h-full">
                     <Outlet />
