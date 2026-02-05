@@ -95,6 +95,14 @@ class Validator:
         
         # 3. Try file extension hint (only if auto-detection didn't find anything strong)
         if extension_hint:
+            if extension_hint == 'markdown':
+                result['valid'] = True
+                result['language'] = 'markdown'
+                result['block_type'] = 'markup'
+                result['confidence_score'] = 0.90
+                result['validation_method'] = 'extension'
+                return result
+
             if extension_hint in ['json', 'xml', 'yaml']:
                  structured_result = self._validate_structured_data(block.content)
                  if structured_result['valid'] and structured_result['language'] == extension_hint:
