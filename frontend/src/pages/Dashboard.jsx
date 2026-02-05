@@ -5,6 +5,8 @@ import {
 } from 'recharts';
 import { FileText, Code, Activity, Layers, BarChart2, AlertTriangle, Trash2 } from 'lucide-react';
 import { getAnalyticsOverview, getAnalyticsTrends, resetSystem } from '../services/api';
+import ConfirmDialog from '../components/ConfirmDialog';
+import { toast } from 'sonner';
 
 const StatCard = ({ title, value, label, icon: Icon, color }) => (
     <div className="bg-[#1a1b26] p-6 rounded-xl border border-white/5 relative overflow-hidden group hover:border-purple-500/30 transition-all">
@@ -25,6 +27,7 @@ const Dashboard = () => {
     const [overview, setOverview] = useState(null);
     const [trends, setTrends] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -44,18 +47,20 @@ const Dashboard = () => {
         fetchData();
     }, []);
 
-    const handleSystemReset = async () => {
-        if (window.confirm("⚠️ DANGER: Are you sure you want to RESET THE ENTIRE SYSTEM?\n\nThis will DELETE ALL uploaded files, extracted code, and statistics.\nThis action cannot be undone.")) {
-            if (window.confirm("🔴 FINAL WARNING: ALL DATA WILL BE LOST.\n\nType 'OK' to proceed?")) {
-                try {
-                    await resetSystem();
-                    alert("System has been reset successfully. Reloading...");
-                    window.location.reload();
-                } catch (err) {
-                    alert("Failed to reset system: " + err.message);
-                }
-            }
+    const handleResetClick = () => {
+        setIsResetDialogOpen(true);
+    };
+
+    const confirmSystemReset = async () => {
+        try {
+            await resetSystem();
+            toast.success("System reset successful. Reloading...");
+            setTimeout(() => window.location.reload(), 1500);
+        } catch (err) {
+            console.error("Reset failed:", err);
+            toast.error("Failed to reset system: " + err.message);
         }
+        setIsResetDialogOpen(false);
     };
 
     if (loading) return <div className="text-center py-20 text-gray-500">Loading Premium Analytics...</div>;
@@ -200,7 +205,7 @@ const Dashboard = () => {
                         </p>
                     </div>
                     <button
-                        onClick={handleSystemReset}
+                        onClick={handleResetClick}
                         className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors font-bold shadow-lg shadow-red-900/20"
                     >
                         <Trash2 size={18} />
@@ -208,6 +213,16 @@ const Dashboard = () => {
                     </button>
                 </div>
             </div>
+
+            <ConfirmDialog
+                isOpen={isResetDialogOpen}
+                onClose={() => setIsResetDialogOpen(false)}
+                onConfirm={confirmSystemReset}
+                title="⚠️ FATAL: Reset System?"
+                message="Are you absolutely sure you want to WIPEOUT the entire database? This will permanently delete ALL files, extracted code, and analytics. This action CANNOT be undone."
+                confirmText="DESTROY ALL DATA"
+                isDestructive={true}
+            />
         </div>
     );
 };
